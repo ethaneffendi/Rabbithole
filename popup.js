@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Ontology Graph</title>
-  <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
-  <link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" />
-  <style>
-    #network {
-      width: 100%;
-      height: 600px;
-      border: 0px solid lightgray;
-    }
-  </style>
-</head>
-<body>
-  <h2>Ontology Graph</h2>
-  <div id="network"></div>
-
-  <script>
-    // Define nodes (concepts)
+document.addEventListener('DOMContentLoaded', () => {
     const nodes = new vis.DataSet([
       { id: 1, label: "Animal" },
       { id: 2, label: "Mammal" },
@@ -26,8 +7,7 @@
       { id: 5, label: "Cat" },
       { id: 6, label: "Sparrow" }
     ]);
-
-    // Define edges (relationships)
+  
     const edges = new vis.DataSet([
       { from: 1, to: 2, label: "is-a" },
       { from: 1, to: 3, label: "is-a" },
@@ -35,20 +15,36 @@
       { from: 2, to: 5, label: "is-a" },
       { from: 3, to: 6, label: "is-a" }
     ]);
-
-    // Create the network
+  
     const container = document.getElementById('network');
     const data = { nodes, edges };
+  
     const options = {
       edges: {
-        arrows: { to: { enabled: true } },
-        font: { align: 'top' }
+        arrows: { to: true },
+        font: { align: 'middle' }
+      },
+      nodes: {
+        shape: 'dot',
+        size: 16,
+        font: { size: 14 }
       },
       physics: {
-        stabilization: true
+        solver: 'forceAtlas2Based',
+        forceAtlas2Based: {
+          gravitationalConstant: -60,
+          springLength: 100,
+          springConstant: 0.08
+        },
+        stabilization: { iterations: 100 }
+      },
+      interaction: {
+        hover: true,
+        dragNodes: true,
+        zoomView: true
       }
     };
+  
     new vis.Network(container, data, options);
-  </script>
-</body>
-</html>
+  });
+  
