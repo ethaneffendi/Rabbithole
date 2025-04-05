@@ -1,18 +1,23 @@
-chrome.tabs.onActivated.addListener(function (activeInfo) {
-    chrome.tabs.get(activeInfo.tabId, async function (tab) {
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    console.log("new tab! activation")
+    try {
+        const tab = await chrome.tabs.get(activeInfo.tabId);
+        if(tab.url == "") {return}
         await chrome.storage.local.set({ currentUrl: tab.url });
-    });
-});
-//THESE TWO SHOULD HAVE SAME INNER CODE (FOR WHEN MAIN TAB CHANGES)
-chrome.tabs.onUpdated.addListener((tabId, change, tab) => async function () {
-    if (tab.active && change.url) {
-        await chrome.storage.local.set({ currentUrl: change.url });
+        console.log('activation',JSON.stringify(await chrome.storage.local.get(['currentUrl'])))
+    } catch (error) {
+        console.log('Error activation:', error);
     }
 });
 
-//upon new tab
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (changeInfo.status == 'complete') {
-        saveTab();
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    try {
+        if (changeInfo.status === 'complete') {
+            console.log("new tab! update")
+            await chrome.storage.local.set({ currentUrl: tab.url });
+        }
+        console.log('update',JSON.stringify(await chrome.storage.local.get(['currentUrl'])))
+    } catch (error) {
+        console.log('Error update:', error);
     }
 });

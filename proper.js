@@ -1,23 +1,33 @@
+/* // content.js
 async function saveTab() {
-    const data = [{
-        "self": [(await chrome.tabs.query({})).url],
-        "parent": await chrome.storage.local.get(['currentUrl'])
-    }]
-    data = data.concat(await chrome.storage.local.get(['objs']))
-    await chrome.storage.local.set({ data: data });
+    try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const activeTab = tabs[0];
+        if (!activeTab) throw new Error('No active tab found');
+
+        const data = [{
+            "self": [activeTab.url],
+            "parent": await chrome.storage.local.get(['currentUrl'])
+        }];
+
+        const existingObjs = await chrome.storage.local.get(['objs']);
+        const newData = data.concat(existingObjs.objs || []);
+        await chrome.storage.local.set({ objs: newData });
+    } catch (error) {
+        console.error('Error saving tab:', error);
+        throw error;
+    }
 }
 
 async function fetch() {
-    const data = await chrome.storage.local.get(['objs']);
-    newWin = window.open()
-    newWin.document.write(JSON.stringify(data))
-/*     for (piece of data) {
-        newWin.document.write(JSON.stringify(piece.url));
-        newWin.document.write("");
-    } */
+    try {
+        const data = await chrome.storage.local.get(['objs']);
+        const newWin = window.open();
+        newWin.document.write(JSON.stringify(data, null, 2));
+    } catch (error) {
+        console.error('Error fetching data:', error);
+        throw error;
+    }
 }
 
-
-document.getElementById("get_urls").onclick = async function () {
-    fetch();
-};
+document.getElementById("get_urls").onclick = fetch; */
