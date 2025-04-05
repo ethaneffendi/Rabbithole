@@ -7,10 +7,11 @@
     "default_popup": "index.html"
   },
   "background": {
-    "scripts": ["get_urls.js"]
+    "scripts": ["background.js"]
   },
   "permissions": [
-    "history",
-    "tabs"
+    "tabs",
+    "storage",
+    "unlimitedStorage"
   ]
 }
