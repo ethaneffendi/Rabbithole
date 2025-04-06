@@ -12,3 +12,9 @@ window.onload = async function () {
         window.location.href = "hello.html";
     }
 }
+/* 
+document.getElementById('back').addEventListener('click', async function(){
+    alert("Hello World");
+    await chrome.storage.local.set({ "welcomed": false })
+    window.location.href = "index.html";
+  }); */

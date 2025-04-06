@@ -7,9 +7,7 @@ var graph = new Springy.Graph();
 
 const cornflowerBlue = '#5959FB';
 const lightGray = '#E0E0E2'; // actually alto
-function newAlert(){
-  alert("Hello World");
-}
+
 
 
 var dennis = graph.newNode({label: 'Dennis',ondoubleclick: function(){ alert("Hi"); } });
@@ -59,10 +57,16 @@ document.getElementById('network').addEventListener('wheel', (event) => {
   //alert(scale);
 }, { passive: false }); // Important for preventDefault()
 
-
+document.getElementById('ai').addEventListener('click', function() {
+  if (aiRecommend) {
+    aiRecommend = false;
+  } else {
+    aiRecommend = true;
+  }
+})
 
 document.getElementById('back').addEventListener('click', async function(){
-  //alert("Hello World");
+  alert("Hello World");
   await chrome.storage.local.set({ "welcomed": false })
   window.location.href = "index.html";
 });
