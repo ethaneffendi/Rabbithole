@@ -21,7 +21,7 @@ class TabEventProcessor {
     }
 
     async processNext() {
-        console.log(this.processing, this.queue)
+        //console.log(this.processing, this.queue)
         if (this.processing || this.queue.length === 0) return;
 
         const { eventType, data, parent, resolve } = this.queue.shift();
@@ -34,19 +34,18 @@ class TabEventProcessor {
                 if (tab.url == "") { return resolve() }
 
                 await chrome.storage.local.set({ currentUrl: tab.url });
-                console.log('switch', await chrome.storage.local.get(['currentUrl']));
+                //console.log('switch', await chrome.storage.local.get(['currentUrl']));
             } else if (eventType === 'update') {
                 const realId = await getCurrentTabId();
-                if (data.url == "chrome://newtab/") return;
 
                 if (data.changeInfo.status === 'complete' && data.id == realId) {
                     await chrome.storage.local.set({
                         currentUrl: data.url,
                         tabId: data.id
                     });
-                    console.log('new tab', await chrome.storage.local.get(['currentUrl']));
+                    //console.log('new tab', await chrome.storage.local.get(['currentUrl']));
                 } else if (data.changeInfo.status === 'complete') {
-                    console.log('branched', data.url)
+                    //console.log('branched', data.url)
                 }
                 var graphData = (await chrome.storage.local.get(['graphData'])).graphData ?? []
 
@@ -54,11 +53,12 @@ class TabEventProcessor {
                     self: data.url,
                     parent: parent.currentUrl
                 })//remember to add data of the page
+                console.log("parent\n",parent.currentUrl,"\nself\n",data.url,"\n")
                 await chrome.storage.local.set({graphData: graphData})
             }
             resolve();
         } catch (error) {
-            console.error(`Error handling ${eventType}:`, error);
+            //console.error(`Error handling ${eventType}:`, error);
             reject(error);
         } finally {
             this.processing = false;
@@ -73,14 +73,14 @@ const tabProcessor = new TabEventProcessor();
 
 // Set up listeners
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-    console.log("STARTED ACTIVATION")
+    //console.log("STARTED ACTIVATION")
     await tabProcessor.enqueue('activation', activeInfo, "");
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     current_tab_url = await chrome.storage.local.get(['currentUrl']);
     if (changeInfo.status === 'complete') {
-        console.log("STARTED UPDATE")
+        //console.log("STARTED UPDATE")
         await tabProcessor.enqueue('update', {
             id: tabId,
             tabId,
