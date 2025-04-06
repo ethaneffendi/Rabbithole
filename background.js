@@ -7,6 +7,30 @@ async function getCurrentTabId() {
     });
 }
 
+async function getInnerTextForTab(tabId) {
+    try {
+        const results = await chrome.scripting.executeScript({
+            target: { tabId: tabId },
+            func: () => document.body.innerText, // Function to execute in the target tab
+        });
+
+        // Results is an array of InjectionResult objects
+        // For a single frame injection, we expect one result
+        if (results && results[0] && results[0].result) {
+            const innerText = results[0].result;
+            console.log("Page innerText:", innerText);
+            return innerText; // Return the text
+        } else {
+            console.log("Could not retrieve innerText. Result:", results);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Failed to execute script in tab ${tabId}: ${error}`);
+        // Handle errors, e.g., tab closed, no permission, page not loaded yet
+        return null;
+    }
+}
+
 class TabEventProcessor {
     constructor() {
         this.queue = [];
@@ -49,12 +73,16 @@ class TabEventProcessor {
                 }
                 var graphData = (await chrome.storage.local.get(['graphData'])).graphData ?? []
 
+                var text = await getInnerTextForTab(data.id)
+                //console.log("text", text,)
+
                 graphData.push({
                     self: data.url,
-                    parent: parent.currentUrl
+                    parent: parent.currentUrl,
+                    data: text
                 })//remember to add data of the page
-                console.log("parent\n",parent.currentUrl,"\nself\n",data.url,"\n")
-                await chrome.storage.local.set({graphData: graphData})
+                console.log("parent\n", parent.currentUrl, "\nself\n", data.url, "\n")
+                await chrome.storage.local.set({ graphData: graphData })
             }
             resolve();
         } catch (error) {
