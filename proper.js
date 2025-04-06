@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Helper function to fix dictionary
-    async function fixDictionary() {
+    async function makeNames() {
         try {
             // Show progress modal
             showProgressModal("Naming Entries...");
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fix Dict button
     document.getElementById("fix_dict").addEventListener('click', async function() {
         try {
-            await fixDictionary();
+            await makeNames();
             hideProgressModal();
             alert("Dictionary fixed successfully");
         } catch (error) {
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("fix_and_show").addEventListener('click', async function() {
         try {
             // First fix the dictionary
-            await fixDictionary();
+            await makeNames();
             hideProgressModal();
             
             // Then display the data
@@ -373,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("fix_and_show_raw").addEventListener('click', async function() {
         try {
             // First fix the dictionary
-            await fixDictionary();
+            await makeNames();
             hideProgressModal();
             
             // Then display the raw data
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById("export_dict").addEventListener('click', async function() {
         try {
             // First fix the dictionary to ensure all entries are named
-            await fixDictionary();
+            await makeNames();
             hideProgressModal();
             
             // Then export the dictionary
