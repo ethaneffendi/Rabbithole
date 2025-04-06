@@ -1,14 +1,26 @@
 import { GoogleGenAI } from "./node_modules/@google/genai";
 
-export async function giveName(contents) {
-    const ai = new GoogleGenAI({ apiKey: "AIzaSyBqGJXPR5Gk2oZ9booojsuei8o3f_1Zmgc" });
-    const response = await ai.models.generateContent({
+    export async function giveName(contents) {
+        const ai = new GoogleGenAI({ apiKey: "AIzaSyBqGJXPR5Gk2oZ9booojsuei8o3f_1Zmgc" });
+        const response = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: "Return one to three words (no punctuation and all lower case) that name the topic of the following text" + contents,
+        });
+        return response.text
+    }
+    
+    export async function giveSuggestion(topic) {
+        const ai = new GoogleGenAI({ apiKey: "AIzaSyBqGJXPR5Gk2oZ9booojsuei8o3f_1Zmgc" });
+        const relevantTopic = await ai.models.generateContent({
+            model: "gemini-2.0-flash",
+            contents: "Return one to three words (no punctuation and all lower case) that name the topic of the following text" + contents,
+        });
+        const releventArticleURL = await ai.models.generateContent({
         model: "gemini-2.0-flash",
-        contents: "Return one to three words (no punctuation and all lower case) that name the topic of the following text" + contents,
-    });
-    return response
-}
-
+        contents: "Return the URL (and only the URL) of a credible article about " + relevantTopic,
+        })
+        return [relevantTopic.text, relevantArticleURL.text]
+    }
 export async function createGraph() {
     var data = await chrome.storage.local.get(['graphData'])
     var graph = new Springy.Graph()
