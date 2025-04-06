@@ -1,42 +1,50 @@
-try{
-    require('vis-network');
 
-} catch(e){ }
-function closeWindow() {
-    console.log("Closing the window");
-    alert("Closing the window");
-    window.close();
-    
+//document.getDocumentElementById.addEventListener('click', newAlert);
+
+var canvas = document.getElementById('network');
+
+this.canvas.addEventListener('mousewheel', alert(), false);
+
+function alert(){
+  alert("Hello World");
 }
 
-document.getElementById('example').textContent = 'New World!';
-document.getElementById('start').addEventListener('click', closeWindow);
-document.getElementById('network').textContent = 'New Network!';
-document.getElementById('example').textContent = 'Best World!';
+var graph = new Springy.Graph();
 
-// create an array with nodes
-var nodes = new vis.DataSet([
-    { id: 1, label: "Node 1" },
-    { id: 2, label: "Node 2" },
-    { id: 3, label: "Node 3" },
-    { id: 4, label: "Node 4" },
-    { id: 5, label: "Node 5" },
-  ]);
+const cornflowerBlue = '#5959FB';
+const lightGray = '#E0E0E2'; // actually alto
+function newAlert(){
+  alert("Hello World");
+}
 
-  // create an array with edges
-  var edges = new vis.DataSet([
-    { from: 1, to: 3 },
-    { from: 1, to: 2 },
-    { from: 2, to: 4 },
-    { from: 2, to: 5 },
-    { from: 3, to: 3 },
-  ]);
 
-  // create a network
-  var container = document.getElementById("mynetwork");
-  var data = {
-    nodes: nodes,
-    edges: edges,
-  };
-  var options = {};
-  var network = new vis.Network(container, data, options);
+var dennis = graph.newNode({label: 'Dennis',ondoubleclick: function(){ alert("Hi"); } });
+var michael = graph.newNode({label: 'Michael', ondoubleclick: function(){ alert("Hi"); }});
+var jessica = graph.newNode({label: 'Jessica', ondoubleclick: function(){ alert("Hi"); }});
+var timothy = graph.newNode({label: 'Timothy', ondoubleclick: function(){ alert("Hi"); }});
+var barbara = graph.newNode({label: 'Barbara', ondoubleclick: function(){ alert("Hi"); }});
+var franklin = graph.newNode({label: 'Franklin', ondoubleclick: function(){ alert("Hi"); }});
+var monty = graph.newNode({label: 'Monty', ondoubleclick: function(){ alert("Hi"); }});
+var james = graph.newNode({label: 'James', ondoubleclick: function(){ alert("Hi"); }});
+var bianca = graph.newNode({label: 'Bianca', ondoubleclick: function(){ alert("Hi"); }});
+
+graph.newEdge(dennis, michael, {color: lightGray});
+graph.newEdge(michael, jessica, {color: lightGray});
+graph.newEdge(jessica, barbara, {color: lightGray});
+graph.newEdge(michael, timothy, {color: lightGray});
+graph.newEdge(franklin, monty, {color: lightGray});
+graph.newEdge(dennis, monty, {color: lightGray});
+graph.newEdge(monty, james, {color: lightGray});
+graph.newEdge(barbara, timothy, {color: lightGray});
+graph.newEdge(dennis, bianca, {color: lightGray});
+graph.newEdge(bianca, monty, {color: lightGray});
+
+jQuery(function(){
+  var springy = window.springy = jQuery('#network').springy({
+    graph: graph,
+    nodeSelected: function(node){
+      console.log('Node selected: ' + JSON.stringify(node.data));
+    }
+  });
+});
+

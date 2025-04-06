@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "jquery": "^3.7.1",
     "vis-network": "^9.1.9"
   }
 }
