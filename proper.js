@@ -9,3 +9,6 @@ document.getElementById("clear_storage").addEventListener('click', async functio
         graphData: [],
     })
 });
+document.getElementById("fix_dict").addEventListener('click', async function () {
+    await fixDict()
+});
