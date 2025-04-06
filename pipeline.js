@@ -132,6 +132,7 @@ async function giveSuggestion(topic) {
     } catch (error) {
         logError("Error in giveSuggestion:", error);
         return [["error", "error"]]; // Return as array of arrays to match how it's used in forUI.js
+<<<<<<< Updated upstream
     }
 }
 
@@ -145,6 +146,8 @@ async function createGraph() {
     } catch (error) {
         logError("Error in createGraph:", error);
         return {};
+=======
+>>>>>>> Stashed changes
     }
 }
 
@@ -254,10 +257,166 @@ logInfo("Pipeline module loaded");
 // Expose the functions to the window object
 window.fixDict = fixDict;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 window.createGraph = createGraph;
 
 // Also expose for module contexts
 export { fixDict, createGraph, giveName };
+=======
+window.printGraphList = printGraphList;
+window.getGraphListData = getGraphListData;
+window.createGraphList = async function() {
+    try {
+        const data = await getGraphListData();
+        
+        // Print the graph list
+        console.log("=== Graph List with Suggestions ===");
+        console.log(`Total Entries: ${data.length}`);
+        
+        data.forEach((item, index) => {
+            console.log(`Graph Item ${index + 1}:`);
+            console.log(`- Self: ${item.get('self')}`);
+            console.log(`- Parent: ${item.get('parent')}`);
+            console.log(`- Name: ${item.get('name')}`);
+            console.log(`- AI Generated: ${item.get('ai') || false}`);
+        });
+        
+        return data;
+    } catch (error) {
+        logError("Error in createGraphList:", error);
+        return [];
+    }
+};
+
+// Helper function for getSuggestions to match forUI.js
+async function getSuggestions(list) {
+    try {
+        // Find edges (nodes without parents)
+        const nodeSet = new Set();
+        for (const node of list) {
+            nodeSet.add(node.get('self'));
+        }
+        
+        for (const node of list) {
+            if (nodeSet.has(node.get('parent'))) {
+                nodeSet.delete(node.get('parent'));
+            }
+        }
+        
+        // Map child URLs to names
+        const childrenMap = new Map();
+        for (const child of nodeSet) {
+            for (const potentialMatch of list) {
+                if (child === potentialMatch.get('self')) {
+                    childrenMap.set(child, potentialMatch.get('name'));
+                }
+            }
+        }
+        
+        // Get suggestions for each child
+        for (const child of childrenMap.keys()) {
+            const suggestion = await giveSuggestion(childrenMap.get(child));
+            for (const suggest in suggestion) {
+                const tempMap = new Map();
+                tempMap.set("parent", "child");
+                tempMap.set("self", suggestion[suggest][1]);
+                tempMap.set("name", suggestion[suggest][0]);
+                tempMap.set("ai", true);
+                list.push(tempMap);
+            }
+        }
+        
+        return list;
+    } catch (error) {
+        logError("Error in getSuggestions:", error);
+        return list;
+    }
+}
+
+/**
+ * Exports the list of browsing history data formatted for the graph visualization
+ * @returns {Promise<Array>} - The list of graph nodes
+ */
+async function exportList() {
+    try {
+        logInfo("Exporting graph data list");
+        const result = await chrome.storage.local.get(['graphData']);
+        const graphData = result.graphData || [];
+        
+        // Convert the array of objects to array of Maps to match forUI.js expectations
+        const formattedList = graphData.map(item => {
+            const mapItem = new Map();
+            mapItem.set('self', item.self || '');
+            mapItem.set('parent', item.parent || '');
+            mapItem.set('name', item.name || '');
+            return mapItem;
+        });
+        
+        return formattedList;
+    } catch (error) {
+        logError("Error in exportList:", error);
+        return [];
+    }
+}
+
+/**
+ * Prints the raw graph list data to console
+ * @returns {Promise<boolean>} - Success status
+ */
+async function printGraphList() {
+    try {
+        const list = await exportList();
+        console.log("Raw Graph List Data:");
+        list.forEach((item, index) => {
+            console.log(`Item ${index + 1}:`);
+            console.log(`- Self: ${item.get('self')}`);
+            console.log(`- Parent: ${item.get('parent')}`);
+            console.log(`- Name: ${item.get('name')}`);
+        });
+        return true;
+    } catch (error) {
+        logError("Error in printGraphList:", error);
+        return false;
+    }
+}
+
+// Make names wrapper to match forUI.js expectations
+async function makeNames() {
+    try {
+        await fixDict();
+        return true;
+    } catch (error) {
+        logError("Error in makeNames:", error);
+        return false;
+    }
+}
+
+/**
+ * Gets the graph list data with AI suggestions for display
+ * @returns {Promise<Array>} - The list of graph nodes with suggestions
+ */
+async function getGraphListData() {
+    try {
+        await makeNames();
+        const list = await exportList();
+        
+        // Mark all items as not AI-generated
+        list.forEach(item => {
+            item.set('ai', false);
+        });
+        
+        // Get suggestions
+        const updatedList = await getSuggestions(list);
+        return updatedList;
+    } catch (error) {
+        logError("Error in getGraphListData:", error);
+        return [];
+    }
+}
+
+// Also expose for module contexts
+export { fixDict, giveName, promptAI, giveSuggestion, exportList, makeNames, printGraphList, getGraphListData };
+>>>>>>> Stashed changes
 =======
 window.printGraphList = printGraphList;
 window.getGraphListData = getGraphListData;

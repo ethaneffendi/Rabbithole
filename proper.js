@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     // Helper function to display URL data
     async function displayUrlData() {
         const result = await chrome.storage.local.get(['graphData']);
@@ -279,6 +280,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (typeof window.fixDict === 'function') {
                 return await window.fixDict();
 =======
+=======
+>>>>>>> Stashed changes
     // Print Raw List button - outputs pure JSON to a new window
     document.getElementById("print_raw_list").addEventListener('click', async function() {
         try {
@@ -313,6 +316,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 </html>`);
                 
                 newWindow.document.close();
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
             } else {
                 alert("Unable to open new window. Please check your popup blocker settings.");
@@ -498,6 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             console.error("Error clearing storage:", error);
             alert("Error clearing storage: " + error.message);
         }
@@ -544,6 +551,10 @@ document.addEventListener('DOMContentLoaded', function() {
             hideProgressModal();
             console.error("Error in fix_and_show_raw:", error);
             alert("Error: " + error.message);
+=======
+            console.error("Error deleting history:", error);
+            alert("Error deleting history: " + error.message);
+>>>>>>> Stashed changes
 =======
             console.error("Error deleting history:", error);
             alert("Error deleting history: " + error.message);
