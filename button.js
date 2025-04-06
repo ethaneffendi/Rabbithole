@@ -2,7 +2,7 @@
 const el = document.getElementById('back');
 if (el) {
   el.addEventListener('click', async function() {
-    alert("backed");
+    //alert("backed");
     await chrome.storage.local.set({ "welcomed": false })
     window.location.href = "index.html";
   });
@@ -11,7 +11,7 @@ if (el) {
 const el2 = document.getElementById('ai');
 if (el2) {
   document.getElementById('ai').addEventListener('click', function() {
-    alert("Aied");
+    //alert("Aied");
     if (aiRecommend) {
       aiRecommend = false;
     } else {
