@@ -7,7 +7,7 @@
   },
   "background": {
     "service_worker": "background.js",
-    "mode": "module"
+    "type": "module"
   },
   "permissions": [
     "tabs",
