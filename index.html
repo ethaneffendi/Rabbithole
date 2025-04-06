@@ -1,61 +1,69 @@
+<!DOCTYPE html>
 <html>
 
 <head>
-  <title>Rabbithole</title>
-  <style>
-    body {
-      width: 400px;
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 15px;
-      background-color: #f8f9fa;
-    }
-    .container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    button {
-      padding: 10px 15px;
-      background-color: #4299e1;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background-color 0.2s;
-    }
-    button:hover {
-      background-color: #3182ce;
-    }
-    h1 {
-      font-size: 18px;
-      margin-top: 0;
-      margin-bottom: 15px;
-      color: #2d3748;
-    }
-    .separator {
-      border-top: 1px solid #e2e8f0;
-      margin: 5px 0;
-    }
-  </style>
+    <title>Rabbithole Start</title>
+    <link rel="stylesheet" href="mystyle.css">
+    <style>
+        html{
+            
+            padding: 25px;
+        }
+
+        body {
+            border-radius: 25px;
+            border: 5px solid lightgray;
+            padding: 20px;
+            width: 418px;
+            height: 427px;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            font-family: 'Mukta', sans-serif;
+            overflow: hidden;
+            /* Hide anything that overflows the small height */
+
+            /* Use Flexbox for better centering in constrained space */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center items horizontally */
+            justify-content: center;
+            /* Center items vertically */
+        }
+
+        h1 {
+            margin: 0;
+            /* Remove default heading margin */
+            font-size: 50px;
+            /* Adjust size as needed */
+            font-weight: bold;
+            line-height: 1.1;
+            /* Reduce space above/below text */
+        }
+
+        hr {
+            border: none;
+            /* Remove default border */
+            border-top: 1px solid black;
+            /* Style the line */
+            width: 80%;
+            /* Make line shorter than full width */
+            margin: 2px 0;
+            /* Minimal vertical space around the line */
+            padding: 5px;
+        }
+    </style>
 </head>
 
 <body>
-  <h1>Rabbithole Browser History</h1>
-  <div class="container">
-    <button id="get_urls">Get Urls</button>
-    <button id="fix_dict">Fix Dict</button>
-    <div class="separator"></div>
-    <button id="fix_and_show">Fix and Show</button>
-    <button id="fix_and_show_raw">Fix and Show Raw</button>
-    <button id="export_dict">Export Dictionary</button>
-    <div class="separator"></div>
-    <button id="clear_storage">Clear Storage</button>
-  </div>
-  <script src="proper.js"></script>
-  <script type="module" src="pipeline.js"></script>
+    <!-- <div id = "thingy"></div> -->
+    <img src="/images/rabbit.jpg" alt="Logo">
+    <h1>Rabbithole</h1>
+    <hr>
+    <button id = 'beginButton' class="button button5" >Start</button>
+    <script src="button.js"></script>
 </body>
 
 </html>
