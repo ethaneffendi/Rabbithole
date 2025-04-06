@@ -1,13 +1,8 @@
 
 //document.getDocumentElementById.addEventListener('click', newAlert);
 
-var canvas = document.getElementById('network');
 
-this.canvas.addEventListener('mousewheel', alert(), false);
 
-function alert(){
-  alert("Hello World");
-}
 
 var graph = new Springy.Graph();
 
@@ -47,4 +42,15 @@ jQuery(function(){
     }
   });
 });
+
+
+
+document.getElementById('back').addEventListener('click', async function(){
+  await chrome.storage.local.set({ "welcomed": false })
+  window.location.href = "index.html";
+});
+document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");},{passive:false});
+
+
+
 
