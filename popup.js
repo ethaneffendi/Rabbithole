@@ -3,7 +3,6 @@
 
 
 
-
 var graph = new Springy.Graph();
 
 const cornflowerBlue = '#5959FB';
@@ -24,7 +23,6 @@ var james = graph.newNode({label: 'James', ondoubleclick: function(){ alert("Hi"
 var bianca = graph.newNode({label: 'Bianca', ondoubleclick: function(){ alert("Hi"); }});
 
 graph.newEdge(dennis, michael, {color: lightGray});
-graph.newEdge(michael, jessica, {color: lightGray});
 graph.newEdge(jessica, barbara, {color: lightGray});
 graph.newEdge(michael, timothy, {color: lightGray});
 graph.newEdge(franklin, monty, {color: lightGray});
@@ -32,7 +30,6 @@ graph.newEdge(dennis, monty, {color: lightGray});
 graph.newEdge(monty, james, {color: lightGray});
 graph.newEdge(barbara, timothy, {color: lightGray});
 graph.newEdge(dennis, bianca, {color: lightGray});
-graph.newEdge(bianca, monty, {color: lightGray});
 
 jQuery(function(){
   var springy = window.springy = jQuery('#network').springy({
@@ -43,13 +40,41 @@ jQuery(function(){
   });
 });
 
+minScale = 0.1;
+maxScale = 5;
+zoomSensitivity = 0.1;
+
+document.getElementById('network').addEventListener('wheel', (event) => {
+  
+  event.preventDefault(); 
+  const delta = event.deltaY;
+  let newScale;
+  if (delta > 0) {
+      newScale = scale - zoomSensitivity;
+  } else {
+      newScale = scale + zoomSensitivity;
+  }
+  // Clamp the scale within the min/max bounds
+  scale = Math.max(minScale, Math.min(maxScale, newScale));
+  //alert(scale);
+}, { passive: false }); // Important for preventDefault()
+
 
 
 document.getElementById('back').addEventListener('click', async function(){
+  //alert("Hello World");
   await chrome.storage.local.set({ "welcomed": false })
   window.location.href = "index.html";
 });
-document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");},{passive:false});
+
+chrome.commands.onCommand.addListener((command) => {
+ if (counting) {
+    counting = false;
+ } else {
+    counting = true;
+ }
+});
+//document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");}  );
 
 
 

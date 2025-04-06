@@ -23,6 +23,11 @@ Copyright (c) 2010 Dennis Hotson
  OTHER DEALINGS IN THE SOFTWARE.
 */
 
+
+
+var scale = 1;
+var reverseScale = 1/scale;
+
 (function() {
 
 jQuery.fn.springy = function(params) {
@@ -36,6 +41,14 @@ jQuery.fn.springy = function(params) {
 	var nodeSelected = params.nodeSelected || null;
 	var nodeImages = {};
 	var edgeLabelsUpright = true;
+	// Define a maximum distance for node interaction
+	var maxInteractionDistance = params.maxInteractionDistance || 50.0;
+	
+	// Track canvas panning state
+	var canvasDragging = false;
+	var canvasDragStartX = 0;
+	var canvasDragStartY = 0;
+	var canvasOffset = { x: 0, y: 0 };
 
 	var canvas = this[0];
 	var ctx = canvas.getContext("2d");
@@ -45,9 +58,10 @@ jQuery.fn.springy = function(params) {
 	// calculate bounding box of graph layout.. with ease-in
 	var currentBB = layout.getBoundingBox();
 	var targetBB = {bottomleft: new Springy.Vector(-2, -2), topright: new Springy.Vector(2, 2)};
-
+	var drawing = 0;
 	// auto adjusting bounding box
 	Springy.requestAnimationFrame(function adjust() {
+		
 		targetBB = layout.getBoundingBox();
 		// current gets 20% closer to target every iteration
 		currentBB = {
@@ -63,16 +77,40 @@ jQuery.fn.springy = function(params) {
 	// convert to/from screen coordinates
 	var toScreen = function(p) {
 		var size = currentBB.topright.subtract(currentBB.bottomleft);
-		var sx = p.subtract(currentBB.bottomleft).divide(size.x).x * canvas.width;
-		var sy = p.subtract(currentBB.bottomleft).divide(size.y).y * canvas.height;
+		var sx = p.subtract(currentBB.bottomleft).divide(size.x).x * canvas.width + canvasOffset.x;
+		var sy = p.subtract(currentBB.bottomleft).divide(size.y).y * canvas.height + canvasOffset.y;
 		return new Springy.Vector(sx, sy);
 	};
 
 	var fromScreen = function(s) {
 		var size = currentBB.topright.subtract(currentBB.bottomleft);
-		var px = (s.x / canvas.width) * size.x + currentBB.bottomleft.x;
-		var py = (s.y / canvas.height) * size.y + currentBB.bottomleft.y;
+		var px = ((s.x - canvasOffset.x) / canvas.width) * size.x + currentBB.bottomleft.x;
+		var py = ((s.y - canvasOffset.y) / canvas.height) * size.y + currentBB.bottomleft.y;
 		return new Springy.Vector(px, py);
+	};
+
+	// Calculate the canvas center point
+	var canvasCenter = function() {
+		return {
+			x: canvas.width / 2,
+			y: canvas.height / 2
+		};
+	};
+
+	// Transform a screen position according to the current scale
+	var transformScreenPosition = function(x, y) {
+		var center = canvasCenter();
+		// Convert to coordinates relative to center
+		var relX = (x - center.x) / scale + center.x;
+		var relY = (y - center.y) / scale + center.y;
+		return { x: relX, y: relY };
+	};
+
+	// Calculate distance between two points
+	var calculateDistance = function(point1, point2) {
+		var dx = point1.x - point2.x;
+		var dy = point1.y - point2.y;
+		return Math.sqrt(dx * dx + dy * dy);
 	};
 
 	// half-assed drag and drop
@@ -82,15 +120,32 @@ jQuery.fn.springy = function(params) {
 
 	jQuery(canvas).mousedown(function(e) {
 		var pos = jQuery(this).offset();
-		var p = fromScreen({x: e.pageX - pos.left, y: e.pageY - pos.top});
-		selected = nearest = dragged = layout.nearest(p);
+		// Transform the mouse position according to scale
+		var transformedPos = transformScreenPosition(e.pageX - pos.left, e.pageY - pos.top);
+		var p = fromScreen(transformedPos);
+		nearest = layout.nearest(p);
+		
+		// Only select the node if it's within the maximum interaction distance
+		var nearestScreenPos = toScreen(nearest.point.p);
+		var mouseScreenPos = { x: transformedPos.x, y: transformedPos.y };
+		var distance = calculateDistance(nearestScreenPos, mouseScreenPos);
+		
+		if (distance <= maxInteractionDistance * scale) {
+			selected = dragged = nearest;
+			
+			if (selected.node !== null) {
+				dragged.point.m = 10000.0;
 
-		if (selected.node !== null) {
-			dragged.point.m = 10000.0;
-
-			if (nodeSelected) {
-				nodeSelected(selected.node);
+				if (nodeSelected) {
+					nodeSelected(selected.node);
+				}
 			}
+		} else {
+			// Start canvas dragging if we didn't click on a node
+			canvasDragging = true;
+			canvasDragStartX = e.pageX - pos.left;
+			canvasDragStartY = e.pageY - pos.top;
+			selected = dragged = null;
 		}
 
 		renderer.start();
@@ -99,18 +154,59 @@ jQuery.fn.springy = function(params) {
 	// Basic double click handler
 	jQuery(canvas).dblclick(function(e) {
 		var pos = jQuery(this).offset();
-		var p = fromScreen({x: e.pageX - pos.left, y: e.pageY - pos.top});
-		selected = layout.nearest(p);
-		node = selected.node;
-		if (node && node.data && node.data.ondoubleclick) {
-			node.data.ondoubleclick();
+		// Transform the mouse position according to scale
+		var transformedPos = transformScreenPosition(e.pageX - pos.left, e.pageY - pos.top);
+		var p = fromScreen(transformedPos);
+		nearest = layout.nearest(p);
+		
+		// Only select the node if it's within the maximum interaction distance
+		var nearestScreenPos = toScreen(nearest.point.p);
+		var mouseScreenPos = { x: transformedPos.x, y: transformedPos.y };
+		var distance = calculateDistance(nearestScreenPos, mouseScreenPos);
+		
+		if (distance <= maxInteractionDistance * scale) {
+			selected = nearest;
+			node = selected.node;
+			if (node && node.data && node.data.ondoubleclick) {
+				node.data.ondoubleclick();
+			}
 		}
 	});
 
 	jQuery(canvas).mousemove(function(e) {
 		var pos = jQuery(this).offset();
-		var p = fromScreen({x: e.pageX - pos.left, y: e.pageY - pos.top});
+		var mouseX = e.pageX - pos.left;
+		var mouseY = e.pageY - pos.top;
+		
+		if (canvasDragging) {
+			// Calculate delta movement and update offset
+			var deltaX = mouseX - canvasDragStartX;
+			var deltaY = mouseY - canvasDragStartY;
+			canvasOffset.x += deltaX;
+			canvasOffset.y += deltaY;
+			
+			// Update drag start point
+			canvasDragStartX = mouseX;
+			canvasDragStartY = mouseY;
+			
+			renderer.start();
+			return;
+		}
+		
+		// Transform the mouse position according to scale
+		var transformedPos = transformScreenPosition(mouseX, mouseY);
+		var p = fromScreen(transformedPos);
 		nearest = layout.nearest(p);
+		
+		// Calculate distance to nearest node
+		var nearestScreenPos = toScreen(nearest.point.p);
+		var mouseScreenPos = { x: transformedPos.x, y: transformedPos.y };
+		var distance = calculateDistance(nearestScreenPos, mouseScreenPos);
+		
+		// If distance is greater than threshold, set nearest to null
+		if (distance > maxInteractionDistance * scale) {
+			nearest = null;
+		}
 
 		if (dragged !== null && dragged.node !== null) {
 			dragged.point.p.x = p.x;
@@ -122,6 +218,7 @@ jQuery.fn.springy = function(params) {
 
 	jQuery(window).bind('mouseup',function(e) {
 		dragged = null;
+		canvasDragging = false;
 	});
 
 	var getTextWidth = function(node) {
@@ -182,10 +279,10 @@ jQuery.fn.springy = function(params) {
 
 	var renderer = this.renderer = new Springy.Renderer(layout,
 		function clear() {
-			ctx.clearRect(0,0,canvas.width,canvas.height);
+			// Clear entire canvas to fix ghost image issue
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
 		},
 		function drawEdge(edge, p1, p2) {
-			
 			var x1 = toScreen(p1).x;
 			var y1 = toScreen(p1).y;
 			var x2 = toScreen(p2).x;
@@ -235,7 +332,7 @@ jQuery.fn.springy = function(params) {
 
 			var weight = (edge.data.weight !== undefined) ? edge.data.weight : 1.0;
 
-			ctx.lineWidth = Math.max(weight *  2, 0.1);
+			ctx.lineWidth = Math.max(weight * 2, 0.1);
 			arrowWidth = 1 + ctx.lineWidth;
 			arrowLength = 8;
 
@@ -250,16 +347,22 @@ jQuery.fn.springy = function(params) {
 				lineEnd = s2;
 			}
 
+			// Apply center-based scaling for edges
+			var center = canvasCenter();
+			
+			ctx.save();
+			ctx.translate(center.x, center.y);
+			ctx.scale(scale, scale);
+			ctx.translate(-center.x, -center.y);
+			
 			ctx.strokeStyle = stroke;
 			ctx.beginPath();
 			ctx.moveTo(s1.x, s1.y);
 			ctx.lineTo(lineEnd.x, lineEnd.y);
-			//ctx.lineTo(s2.x, s2.y);
 			ctx.stroke();
 			
 			// arrow
 			if (directional) {
-				ctx.save();
 				ctx.fillStyle = stroke;
 				ctx.translate(intersection.x, intersection.y);
 				ctx.rotate(Math.atan2(y2 - y1, x2 - x1));
@@ -270,13 +373,12 @@ jQuery.fn.springy = function(params) {
 				ctx.lineTo(-arrowLength * 0.8, -0);
 				ctx.closePath();
 				ctx.fill();
-				ctx.restore();
+				ctx.translate(-intersection.x, -intersection.y); // Restore translation
 			}
 
 			// label
 			if (edge.data.label !== undefined) {
 				text = edge.data.label
-				ctx.save();
 				ctx.textAlign = "center";
 				ctx.textBaseline = "top";
 				ctx.font = (edge.data.font !== undefined) ? edge.data.font : edgeFont;
@@ -288,19 +390,28 @@ jQuery.fn.springy = function(params) {
 					angle += Math.PI;
 				}
 				var textPos = s1.add(s2).divide(2).add(normal.multiply(displacement));
+				
+				ctx.save();
 				ctx.translate(textPos.x, textPos.y);
 				ctx.rotate(angle);
-				ctx.fillText(text, 0,-2);
+				ctx.fillText(text, 0, -2);
 				ctx.restore();
 			}
-
+			
+			ctx.restore();
 		},
 		function drawNode(node, p) {
 			var s = toScreen(p);
-
+			
+			// Apply center-based scaling for nodes
+			var center = canvasCenter();
+			
 			ctx.save();
-
-			// Pulled out the padding aspect sso that the size functions could be used in multiple places
+			ctx.translate(center.x, center.y);
+			ctx.scale(scale, scale);
+			ctx.translate(-center.x, -center.y);
+			
+			// Pulled out the padding aspect so that the size functions could be used in multiple places
 			// These should probably be settable by the user (and scoped higher) but this suffices for now
 			var paddingX = 6;
 			var paddingY = 6;
@@ -310,9 +421,8 @@ jQuery.fn.springy = function(params) {
 			var boxWidth = contentWidth + paddingX;
 			var boxHeight = contentHeight + paddingY;
 
-			// clear background
-			//ctx.clearRect(s.x - boxWidth/2, s.y - boxHeight/2, boxWidth, boxHeight);
-			//BRADLEY EDIT - by chris frrr
+			// The node radius - scales proportionally with zoom level
+			var nodeRadius = boxWidth/8;
 
 			// fill background
 			if (selected !== null && selected.node !== null && selected.node.id === node.id) {
@@ -325,7 +435,7 @@ jQuery.fn.springy = function(params) {
 			
 			ctx.lineWidth = 1;
 			ctx.beginPath();
-			ctx.arc(Math.round(s.x) ,Math.round(s.y), boxWidth/8, 0, 2 * Math.PI);//CHECKPOINT
+			ctx.arc(Math.round(s.x), Math.round(s.y), nodeRadius, 0, 2 * Math.PI);//CHECKPOINT
 			ctx.stroke();
 			ctx.fill();
 			
@@ -335,7 +445,7 @@ jQuery.fn.springy = function(params) {
 				ctx.font = (node.data.font !== undefined) ? node.data.font : nodeFont;
 				ctx.fillStyle = (node.data.color !== undefined) ? node.data.color : "#262627"; //gray
 				var text = (node.data.label !== undefined) ? node.data.label : node.id;
-				ctx.fillText(text, s.x - contentWidth/2, s.y + contentHeight*2);
+				ctx.fillText(text, s.x - contentWidth/2, s.y + nodeRadius*2); // Adjust text position based on node radius
 			} else {
 				// Currently we just ignore any labels if the image object is set. One might want to extend this logic to allow for both, or other composite nodes.
 				var src = node.data.image.src;  // There should probably be a sanity check here too, but un-src-ed images aren't exaclty a disaster.
@@ -344,7 +454,7 @@ jQuery.fn.springy = function(params) {
 						// Our image is loaded, so it's safe to draw
 						ctx.drawImage(nodeImages[src].object, s.x - contentWidth/2, s.y - contentHeight/2, contentWidth, contentHeight);
 					}
-				}else{
+				} else {
 					// First time seeing an image with this src address, so add it to our set of image objects
 					// Note: we index images by their src to avoid making too many duplicates
 					nodeImages[src] = {};
@@ -357,6 +467,7 @@ jQuery.fn.springy = function(params) {
 					img.src = src;
 				}
 			}
+			
 			ctx.restore();
 		}
 	);
@@ -396,6 +507,12 @@ jQuery.fn.springy = function(params) {
 
 		return false;
 	}
+	
+	// Reset canvas panning
+	this.resetCanvasOffset = function() {
+		canvasOffset = { x: 0, y: 0 };
+		renderer.start();
+	};
 
 	return this;
 }

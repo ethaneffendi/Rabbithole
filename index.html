@@ -1,120 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Rabbit Hole Welcome</title>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    <title>Rabbithole Start</title>
+    <link rel="stylesheet" href="mystyle.css">
+    <style>
+        /* #thingy{
+            width: 418px;
+            height: 150px;
+            background-color: gray;
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 427px;
-      width: 416px;
-      background-color: white;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+        } */
+        html {
+            width: 500px;
+            height: 500px;
+            border-radius: 50px;
+            border: 2px solid #73AD21;
+            padding: 20px;
+        }
 
-    .container {
-      width: 418px;
-      height: 427px;
-      background-color: white;
-      position: relative;
-      overflow: hidden;
-      transition: opacity 0.6s ease;
-    }
+        body {
+            border-radius: 25px;
+            border: 2px solid #73AD21;
+            padding: 20px;
+            width: 418px;
+            height: 427px;
+            background-color: white;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            font-family: 'Mukta', sans-serif;
+            overflow: hidden;
+            /* Hide anything that overflows the small height */
 
-    .container.fade-out {
-      opacity: 0;
-      pointer-events: none;
-    }
+            /* Use Flexbox for better centering in constrained space */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center items horizontally */
+            justify-content: center;
+            /* Center items vertically */
+        }
 
-    .header {
-      background-color: #4b4b4b;
-      color: white;
-      padding: 40px 20px 20px 20px;
-      height: 65%;
-      position: relative;
-    }
+        h1 {
+            margin: 0;
+            /* Remove default heading margin */
+            font-size: 50px;
+            /* Adjust size as needed */
+            font-weight: bold;
+            line-height: 1.1;
+            /* Reduce space above/below text */
+        }
 
-    .header h1 {
-      font-size: 2.5rem;
-      font-weight: 300;
-      line-height: 1.1;
-      color: white;
-    }
-
-    .header h1 span {
-      display: block;
-      color: white;
-      font-weight: 300;
-      text-shadow: 0 0 2px black;
-    }
-
-    .header .hole {
-      position: absolute;
-      bottom: -70px;
-      right: -70px;
-      width: 200px;
-      height: 200px;
-      background-color: #4b4b4b;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-
-    .header .hole:hover {
-      background-color: #333;
-    }
-
-    .header .hole span {
-      color: white;
-      font-size: 1.2rem;
-      user-select: none;
-    }
-
-    .footer {
-      background-color: white;
-      color: #4b4b4b;
-      padding: 20px;
-      font-size: 2.5rem;
-      font-weight: 200;
-      text-align: left;
-      line-height: 1;
-    }
-
-    .footer .outline {
-      color: transparent;
-      -webkit-text-stroke: 1px #4b4b4b;
-    }
-  </style>
+        hr {
+            border: none;
+            /* Remove default border */
+            border-top: 1px solid black;
+            /* Style the line */
+            width: 80%;
+            /* Make line shorter than full width */
+            margin: 2px 0;
+            /* Minimal vertical space around the line */
+            padding: 5px;
+        }
+    </style>
 </head>
-<body>
-  <div class="container" id="welcomeContainer">
-    <div class="header">
-      <h1>
-        <span>Welcome</span>
-        <span>to</span>
-        <span>Rabbit</span>
-      </h1>
-      <div class="hole" id="beginButton">
-        <span>Begin</span>
-      </div>
-    </div>
-    <div class="footer">
-      <div class="outline">Hole</div>
-    </div>
-  </div>
 
-  <script src="button.js"></script>
+<body>
+    <!-- <div id = "thingy"></div> -->
+    <img src="/images/rabbit.jpg" alt="Logo">
+    <h1>Rabbithole</h1>
+    <hr>
+    <div id="container">
+        <button class="learn-more" , id="beginButton">
+            <span class="circle" aria-hidden="true">
+                <span class="icon arrow"></span>
+            </span>
+            <span class="button-text">start</span>
+        </button>
+    </div>
+    <script src="button.js"></script>
 </body>
+
 </html>

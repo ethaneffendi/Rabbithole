@@ -1,12 +1,7 @@
 
 
 
-document.getElementById('beginButton').addEventListener('click', async () => {
-    
-    const container = document.getElementById('welcomeContainer');
-    container.classList.add('fade-out');
-
-
+document.getElementById('beginButton').addEventListener('click', async function () {
     await chrome.storage.local.set({ "welcomed": true })
 
     window.location.href = "hello.html";

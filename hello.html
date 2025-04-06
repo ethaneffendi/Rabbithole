@@ -1,22 +1,59 @@
 <!DOCTYPE html>
 <html>
-  <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js ">
-  <script type = "text/javascript" src = "jquery.js"></script>
+<meta http-equiv="Content-Security-Policy"
+  content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js ">
+<script type="text/javascript" src="jquery.js"></script>
+<h2>Rabbithole</h2>
+
 <head>
-  
+
   <title>Big Graph</title>
   <link rel="stylesheet" href="mystyle.css">
-  <h2>Big Graph</h2>
-  <button id = "back">Go Back</button>
+  <!--  <div id="containerR" style = "display: right;">
+    <button class="learn-more", id = "ai" >
+      <span class="circle" aria-hidden="true">
+        <span class="ißcon arrow"></span>
+      </span>
+      <span class="button-text">ai</span>
+    </button>
+  </div> 
+  <div style="display: flex; justify-content: flex-start;" id="containerR">
+    <button class="learn-more", id = "back">
+      <span class="circle" aria-hidden="true">
+        <span class="icon arrow"></span>
+      </span>
+      <span class="button-text">back</span>
+    </button>
+  </div> -->
+  <div style="display: flex; justify-content: flex-start;">
+    <div id="containerR">
+      <button class="learn-more" id="back">
+        <span class="circle" aria-hidden="true">
+          <span class="icon arrow"></span>
+        </span>
+        <span class="button-text">back</span>
+      </button>
+    </div>
+    <div id="containerL">
+      <button class="learn-more" id="ai">
+        <span class="circle" aria-hidden="true">
+          <span class="icon arrow"></span>
+        </span>
+        <span class="button-text">AI</span>
+      </button>
+    </div>
+  </div>
+  <div id="divider"></div>
 </head>
 
-<body>  
+<body>
   <script src="springy.js"></script>
   <script src="springyui.js"></script>
-  
-  
-  <div id = "divider"></div>
-  <canvas id = "network", width = "400" height = "350"></canvas> 
-  <script src = 'popup.js'></script>
+
+
+  <div id="divider"></div>
+  <canvas id="network" , width="400" height="350"></canvas>
+  <script src='popup.js'></script>
 </body>
+
 </html>
