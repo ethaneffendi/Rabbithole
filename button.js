@@ -1,6 +1,4 @@
 
-
-
 document.getElementById('beginButton').addEventListener('click', async function () {
     await chrome.storage.local.set({ "welcomed": true })
 

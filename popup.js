@@ -1,7 +1,7 @@
 
 //document.getDocumentElementById.addEventListener('click', newAlert);
 
-
+var aiRecommend = false;
 
 var graph = new Springy.Graph();
 
@@ -67,13 +67,7 @@ document.getElementById('back').addEventListener('click', async function(){
   window.location.href = "index.html";
 });
 
-chrome.commands.onCommand.addListener((command) => {
- if (counting) {
-    counting = false;
- } else {
-    counting = true;
- }
-});
+
 //document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");}  );
 
 
