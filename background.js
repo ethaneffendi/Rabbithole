@@ -1,26 +1,53 @@
 // Background service worker initialization
 console.log("🚀 Rabbithole background service worker starting...");
 
+// Add a global variable to track initialization
+let isServiceWorkerInitialized = false;
+
+// Log when service worker is fully initialized
+self.addEventListener('install', (event) => {
+  console.log('📦 Service worker installed');
+  
+  // Force activation without waiting
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('🚀 Service worker activated');
+  isServiceWorkerInitialized = true;
+  
+  // Take control immediately rather than waiting for reload
+  event.waitUntil(self.clients.claim());
+});
+
 // Global debug level (0=off, 1=errors only, 2=important info, 3=verbose)
-const DEBUG_LEVEL = 3;
+const DEBUG_LEVEL = 3; // Set to verbose for debugging
+
+// Initialize flag for fixDict status tracking
+let fixDictStatus = {
+  inProgress: false,
+  totalItems: 0,
+  processedItems: 0,
+  lastProcessedTime: 0
+};
 
 // Improved logging functions
 function logError(message, ...args) {
-    if (DEBUG_LEVEL >= 1) {
-        console.error(`❌ ${message}`, ...args);
-    }
+  if (DEBUG_LEVEL >= 1) {
+    console.error(`❌ ${message}`, ...args);
+  }
 }
 
 function logInfo(message, ...args) {
-    if (DEBUG_LEVEL >= 2) {
-        console.log(`ℹ️ ${message}`, ...args);
-    }
+  if (DEBUG_LEVEL >= 2) {
+    console.log(`ℹ️ ${message}`, ...args);
+  }
 }
 
 function logVerbose(message, ...args) {
-    if (DEBUG_LEVEL >= 3) {
-        console.log(`🔍 ${message}`, ...args);
-    }
+  if (DEBUG_LEVEL >= 3) {
+    console.log(`🔍 ${message}`, ...args);
+  }
 }
 
 // Import functionality from pipeline for AI operations
@@ -45,36 +72,61 @@ async function promptAI(prompt, config = {}) {
             topK: config.topK ?? 40
         };
         
-        // Use fetch API to call Gemini
-        const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        text: prompt
-                    }]
-                }],
-                generationConfig: generationConfig
-            })
-        });
+        // Create an AbortController to handle timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
-        const data = await response.json();
-        
-        // Check if we got a valid response
-        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-            return data.candidates[0].content.parts[0].text.trim();
+        try {
+            // Use fetch API to call Gemini with timeout
+            const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: prompt
+                        }]
+                    }],
+                    generationConfig: generationConfig
+                }),
+                signal: controller.signal
+            });
+            
+            clearTimeout(timeoutId);
+            
+            // API returned an error status
+            if (!response.ok) {
+                logError(`AI API returned error status: ${response.status}`);
+                return config.fallbackResponse ?? "API error: " + response.status;
+            }
+            
+            const data = await response.json();
+            
+            // Check if we got a valid response
+            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+                return data.candidates[0].content.parts[0].text.trim();
+            }
+            
+            // Handle error cases
+            if (data.error) {
+                logError("AI API error:", data.error);
+                return config.fallbackResponse ?? "error";
+            }
+            
+            return config.fallbackResponse ?? "no response";
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            
+            // Specific handling for timeout
+            if (fetchError.name === 'AbortError') {
+                logError("AI API request timed out");
+                return config.fallbackResponse ?? "Request timed out";
+            }
+            
+            throw fetchError; // Re-throw for the outer catch
         }
-        
-        // Handle error cases
-        if (data.error) {
-            logError("AI API error:", data.error);
-            return config.fallbackResponse ?? "error";
-        }
-        
-        return config.fallbackResponse ?? "no response";
     } catch (error) {
         logError("Error in promptAI:", error);
         return config.fallbackResponse ?? "error";
@@ -250,82 +302,23 @@ async function giveName(contents) {
 
 async function createGraph() {
     try {
-        // Get graph data from storage
         const result = await chrome.storage.local.get(['graphData']);
         const graphData = result.graphData || [];
+        var graph = {}; // Replace with actual graph implementation
+        var nodes = new Map();
         
-        logInfo(`Creating graph from ${graphData.length} entries`);
-        
-        // Check if Springy is available
-        if (typeof Springy === 'undefined') {
-            logError("Springy.js is not loaded. Please ensure it's included in your HTML.");
-            return null;
+        for (const item of graphData) {
+            const contents = item.data || "";
+            const parentName = await giveName(contents);
+            nodes.set(item.parent, { label: parentName });
+            nodes.set(item.self, { label: parentName });
+            // Implementation for adding edge would go here
         }
-        
-        // Create a new Springy graph
-        const graph = new Springy.Graph();
-        
-        // Track nodes to avoid duplicates
-        const nodeMap = new Map();
-        
-        // First pass: Create all nodes
-        for (const entry of graphData) {
-            const parentUrl = entry.parent || "(root)";
-            const selfUrl = entry.self || "(unknown)";
-            
-            // Create parent node if it doesn't exist
-            if (!nodeMap.has(parentUrl)) {
-                // Get parent name from graph data or use a default
-                const parentName = findNameForUrl(graphData, parentUrl) || "start page";
-                nodeMap.set(parentUrl, graph.newNode({
-                    url: parentUrl,
-                    label: parentName
-                }));
-            }
-            
-            // Create self node if it doesn't exist
-            if (!nodeMap.has(selfUrl)) {
-                nodeMap.set(selfUrl, graph.newNode({
-                    url: selfUrl,
-                    label: entry.name || "unnamed page"
-                }));
-            }
-        }
-        
-        // Second pass: Create edges
-        for (const entry of graphData) {
-            if (entry.parent && entry.self) {
-                const parentNode = nodeMap.get(entry.parent);
-                const selfNode = nodeMap.get(entry.self);
-                
-                if (parentNode && selfNode) {
-                    // Create edge with timestamp as data
-                    graph.newEdge(parentNode, selfNode, {
-                        timestamp: entry.timestamp,
-                        color: '#cccccc'
-                    });
-                }
-            }
-        }
-        
-        logInfo(`Graph created with ${nodeMap.size} nodes`);
         return graph;
     } catch (error) {
-        logError("Error creating graph:", error);
-        return null;
+        logError("Error in createGraph:", error);
+        return {};
     }
-}
-
-/**
- * Helper function to find the name for a URL in the graph data
- */
-function findNameForUrl(graphData, url) {
-    for (const entry of graphData) {
-        if (entry.self === url && entry.name) {
-            return entry.name;
-        }
-    }
-    return null;
 }
 
 async function fixDict() {
@@ -339,30 +332,21 @@ async function fixDict() {
         // Create a new array to hold the updated items
         const updatedGraphData = [];
         
-        // Create a dictionary object for returning URL -> name mapping
-        const dictionary = {};
-        
         for (let i = 0; i < graphData.length; i++) {
             const item = graphData[i];
             logVerbose(`Processing item ${i+1}/${graphData.length}: ${item.self}`);
-            
-            // Update progress
-            updateFixDictProgress(i, graphData.length);
             
             // Skip items that already have a name
             if (item.name && item.name !== "") {
                 logVerbose(`Item ${i+1} already has name: ${item.name}`);
                 updatedGraphData.push(item);
-                if (item.self) {
-                    dictionary[item.self] = item.name;
-                }
                 continue;
             }
             
             // Get name from data
             const contentText = item.data || "";
             // Use a shorter text sample to avoid API limits
-            const textSample = contentText.substring(0, 1000);
+            const textSample = contentText.substring(0, 500);
             const name = await giveName(textSample);
             
             // Create a new object with all existing properties plus the name
@@ -370,11 +354,6 @@ async function fixDict() {
                 ...item,
                 name: name
             };
-            
-            // Add to dictionary
-            if (updatedItem.self) {
-                dictionary[updatedItem.self] = name;
-            }
             
             // For debugging
             logInfo(`Named item ${i+1}: "${name}"`);
@@ -391,16 +370,11 @@ async function fixDict() {
             graphData: updatedGraphData
         });
         
-        // Update progress as complete
-        updateFixDictProgress(graphData.length, graphData.length, true);
-        
         logInfo("Dictionary fixed successfully");
-        return dictionary;
+        return true;
     } catch (error) {
         logError("Error in fixDict:", error);
-        // Update progress as complete with error
-        updateFixDictProgress(0, 0, true);
-        return {};
+        return false;
     }
 }
 
@@ -455,6 +429,169 @@ chrome.runtime.onInstalled.addListener(async () => {
         graphData: []
     });
 });
+
+// Function to handle messages from the popup
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  logInfo(`Received message: ${message.type}`);
+  
+  if (message.type === "getFixDictProgress") {
+    sendResponse(fixDictStatus);
+    return true;
+  } else if (message.type === "fixDict") {
+    fixDict().then((result) => {
+      logInfo("fixDict completed with result:", result);
+      sendResponse({success: true});
+    }).catch(error => {
+      logError("Error in fixDict:", error);
+      sendResponse({success: false, error: error.message});
+    });
+    return true;
+  } else if (message.type === "generateSuggestions") {
+    logInfo("Generating AI suggestions...");
+    // Generate AI recommendations based on browsing history
+    generateAISuggestions().then(result => {
+      logInfo("generateAISuggestions completed with result:", result);
+      sendResponse({success: true, data: result});
+    }).catch(error => {
+      logError("Error generating AI suggestions:", error);
+      sendResponse({success: false, error: error.message});
+    });
+    return true;
+  } else if (message.type === "ping") {
+    // Simple ping to check if service worker is active
+    logInfo("Ping received, responding");
+    
+    sendResponse({
+      success: true, 
+      message: "Background service worker is active",
+      initialized: isServiceWorkerInitialized
+    });
+    
+    return true;
+  }
+  
+  logError("Unknown message type:", message.type);
+  return false;
+});
+
+// Function to generate AI suggestions based on browsing history
+async function generateAISuggestions() {
+    try {
+        // Create a promise that will reject after 15 seconds
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error("Operation timed out")), 15000);
+        });
+        
+        // Create the actual operation promise
+        const operationPromise = (async () => {
+            // Get the graph data
+            const result = await chrome.storage.local.get(['graphData']);
+            const graphData = result.graphData || [];
+            
+            if (graphData.length === 0) {
+                return {success: false, error: "No browsing data available"};
+            }
+            
+            // Ensure all entries have names
+            for (const entry of graphData) {
+                if (!entry.name || entry.name === "") {
+                    try {
+                        entry.name = await giveName(entry.data || "unknown content");
+                    } catch (error) {
+                        logError("Error naming entry:", error);
+                        entry.name = "unknown topic"; // Fallback
+                    }
+                }
+            }
+            
+            // Create a set of topic names to avoid duplicate suggestions
+            const existingTopics = new Set();
+            graphData.forEach(entry => {
+                if (entry.name) existingTopics.add(entry.name.toLowerCase());
+            });
+            
+            // Generate suggestions for leaf nodes (nodes without children)
+            const suggestions = [];
+            const parentUrls = new Set();
+            
+            // Collect all parent URLs
+            graphData.forEach(entry => {
+                if (entry.parent) parentUrls.add(entry.parent);
+            });
+            
+            // Find leaf nodes (URLs that are not parents to other nodes)
+            const leafNodes = graphData.filter(entry => 
+                entry.self && !parentUrls.has(entry.self) && !entry.ai);
+            
+            // Generate at most 3 suggestions
+            for (let i = 0; i < Math.min(3, leafNodes.length); i++) {
+                const leafNode = leafNodes[i];
+                const nodeContent = leafNode.data || "";
+                const nodeName = leafNode.name || "unknown";
+                
+                // Create a prompt for the AI to suggest related content
+                const prompt = `
+                    Based on this content about "${nodeName}": 
+                    "${nodeContent.substring(0, 500)}..."
+                    
+                    Suggest a related topic that would complement this research.
+                    Return your response in this exact format: "topic: example topic name; url: https://example.com/resource"
+                    The topic should be 1-3 words, lowercase with no punctuation.
+                    The URL should be to a credible resource related to the topic.
+                `;
+                
+                // Get suggestion from AI with timeout handling
+                let suggestion;
+                try {
+                    suggestion = await promptAI(prompt, {
+                        temperature: 0.7,
+                        maxOutputTokens: 100,
+                        fallbackResponse: `topic: suggested topic ${i+1}; url: https://example.com/suggested-resource-${i+1}`
+                    });
+                } catch (error) {
+                    logError("Error getting suggestion from AI:", error);
+                    // Use a fallback response
+                    suggestion = `topic: suggested topic ${i+1}; url: https://example.com/suggested-resource-${i+1}`;
+                }
+                
+                // Parse the response to extract topic and URL
+                let topicMatch = suggestion.match(/topic:\s*([^;]+);/i);
+                let urlMatch = suggestion.match(/url:\s*(https?:\/\/[^\s]+)/i);
+                
+                const topic = topicMatch ? topicMatch[1].trim().toLowerCase() : `suggested topic ${i+1}`;
+                const url = urlMatch ? urlMatch[1].trim() : `https://example.com/suggested-resource-${i+1}`;
+                
+                // Skip if topic already exists
+                if (existingTopics.has(topic)) continue;
+                existingTopics.add(topic);
+                
+                // Create new entry for the suggestion
+                const newSuggestion = {
+                    self: url,
+                    parent: leafNode.self,
+                    name: topic,
+                    data: "",
+                    timestamp: Date.now(),
+                    ai: true // Mark as AI-generated
+                };
+                
+                graphData.push(newSuggestion);
+                suggestions.push(newSuggestion);
+            }
+            
+            // Save the updated graph data
+            await chrome.storage.local.set({graphData});
+            
+            return {success: true, suggestionsAdded: suggestions.length};
+        })();
+        
+        // Race between timeout and operation
+        return await Promise.race([operationPromise, timeoutPromise]);
+    } catch (error) {
+        logError("Error in generateAISuggestions:", error);
+        return {success: false, error: error.message || "Unknown error occurred"};
+    }
+}
 
 logInfo("Background service worker initialized successfully");
 

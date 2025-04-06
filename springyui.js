@@ -23,8 +23,7 @@ Copyright (c) 2010 Dennis Hotson
  OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
-
+// Make scale globally accessible
 var scale = 1;
 var reverseScale = 1/scale;
 
@@ -512,6 +511,14 @@ jQuery.fn.springy = function(params) {
 	this.resetCanvasOffset = function() {
 		canvasOffset = { x: 0, y: 0 };
 		renderer.start();
+	};
+
+	// Make the scale function accessible to external code
+	this.setScale = function(newScale) {
+		scale = newScale;
+		if (renderer) {
+			renderer.start(); // restart rendering to apply new scale
+		}
 	};
 
 	return this;

@@ -1,46 +1,165 @@
 <!DOCTYPE html>
 <html>
-<meta http-equiv="Content-Security-Policy"
-  content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js ">
-<script type="text/javascript" src="jquery.js"></script>
+<head>
+  <title>Rabbithole Graph</title>
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js">
   <link rel="stylesheet" href="mystyle.css">
   <style>
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
+    #error-container {
+      color: red;
+      margin: 10px;
+      padding: 5px;
+      border: 1px solid red;
+      display: none;
     }
-    .button-container {
+    #load-indicator {
+      color: blue;
+      margin: 10px;
+      text-align: center;
+    }
+    #graph-container {
+      position: relative;
+      width: 400px;
+      height: 350px;
+      margin: 0 auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    #network {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.2s ease-out;
+      transform-origin: center center;
+    }
+    /* Zoom controls styling */
+    #zoom-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 100;
       display: flex;
-      gap: 10px;
+      flex-direction: column;
+      gap: 5px;
+    }
+    #zoom-controls button {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+      background-color: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-size: 18px;
+      transition: background-color 0.2s;
+    }
+    #zoom-controls button:hover {
+      background-color: #f0f0f0;
     }
   </style>
-<head>
-  
-  <title>Big Graph</title>
-
-  <div class="header">
-    <h2>Rabbithole</h2>
-    <div class="button-container">
-      <button id="reload" class="button button5" >Reload</button>
-      <button id="back" class="button button5" >Back</button>
-      <button id="ai" class="button button5" >AI</button>
-      <script src = "button.js"></script>
-    </div>
-  </div>
-
-<head>
-  
 </head>
 
 <body>
-  <script src="springy.js"></script>
-  <script src="springyui.js"></script>
+  <h2>Rabbithole</h2>
+  
+  <div style="display: flex; justify-content: space-between; width: 100%;">
+    <button id="back" class="button button5">Back</button>
+    <div>
+      <button id="fancy_output" class="button button5">Browse History</button>
+      <button id="ai" class="button button5">AI</button>
+    </div>
+  </div>
+  
+  <div id="error-container"></div>
+  <div id="load-indicator">Loading graph...</div>
   
   <div id="divider"></div>
-  <canvas id="network" , width="400" height="350"></canvas>
-  <script type = "module" src = "forUI.js"></script>
+  <div id="graph-container">
+    <canvas id="network" width="400" height="350"></canvas>
+  </div>
+  
+  <!-- Load scripts in the correct order with explicit dependencies check -->
+  <!-- First jQuery, which is required by springy.js -->
+  <script src="jquery.js"></script>
+  <script>
+    // Verify jQuery loaded properly
+    if (typeof jQuery === 'undefined') {
+      console.error('jQuery failed to load!');
+      document.getElementById('error-container').style.display = 'block';
+      document.getElementById('error-container').textContent = 'Error: jQuery failed to load. Please reload the extension.';
+    } else {
+      console.log('jQuery loaded successfully: ' + jQuery.fn.jquery);
+    }
+  </script>
+  
+  <!-- Then load Springy core -->
+  <script src="springy.js"></script>
+  <script>
+    // Verify Springy loaded properly
+    if (typeof Springy === 'undefined') {
+      console.error('Springy failed to load!');
+      document.getElementById('error-container').style.display = 'block';
+      document.getElementById('error-container').textContent = 'Error: Springy failed to load. Please reload the extension.';
+    } else {
+      console.log('Springy loaded successfully');
+    }
+  </script>
+  
+  <!-- Then load SpringyUI which depends on both jQuery and Springy -->
+  <script src="springyui.js"></script>
+  <script>
+    // Verify SpringyUI loaded properly
+    if (typeof jQuery.fn.springy === 'undefined') {
+      console.error('SpringyUI failed to load!');
+      document.getElementById('error-container').style.display = 'block';
+      document.getElementById('error-container').textContent = 'Error: SpringyUI failed to load. Please reload the extension.';
+    } else {
+      console.log('SpringyUI loaded successfully');
+    }
+    
+    // Basic error handling
+    window.onerror = function(message, source, lineno, colno, error) {
+      console.error("Error occurred:", message, "at", source, ":", lineno);
+      document.getElementById('error-container').style.display = 'block';
+      document.getElementById('error-container').textContent = "Error: " + message;
+      return false;
+    };
+    
+    // Custom event to indicate when graph rendering is complete
+    window.addEventListener('graphRendered', function() {
+      console.log("Graph rendered successfully");
+      document.getElementById('load-indicator').style.display = 'none';
+      
+      // Run diagnostics on graph render
+      if (typeof diagnoseSpringyIssues === 'function') {
+        console.log("Running Springy diagnostics on graph render");
+        setTimeout(diagnoseSpringyIssues, 1000);
+      }
+    });
+    
+    // Also run diagnostics when DOM content is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log("DOM content loaded in hello.html");
+      setTimeout(function() {
+        if (typeof diagnoseSpringyIssues === 'function') {
+          console.log("Running initial Springy diagnostics");
+          diagnoseSpringyIssues();
+        }
+      }, 1500);
+    });
+    
+    // Hide loading indicator after a timeout if graph doesn't load
+    setTimeout(function() {
+      if (document.getElementById('load-indicator').style.display !== 'none') {
+        console.log("Forcing load indicator to hide after timeout");
+        document.getElementById('load-indicator').style.display = 'none';
+      }
+    }, 5000);
+  </script>
+  
+  <!-- Load app scripts after UI libraries -->
+  <script src="proper.js"></script>
+  <script src="popup.js"></script>
 </body>
-
 </html>

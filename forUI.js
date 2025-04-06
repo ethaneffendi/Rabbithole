@@ -1,15 +1,13 @@
-import {  fixDict, giveName, giveSuggestion } from './pipeline.js';
-
-//alert("called");
+import { exportList, makeNames, giveSuggestion, printGraphList } from './pipeline.js';
 
 function getEdges(list){
     var nodeSet = new Set();
     for(node of list){
-        nodeSet.add(node.get['self'])
+        nodeSet.add(node.get('self'))
     }
     for (node of list){
-        if(nodeSet.has(node.get['parent'])){
-            nodeSet.delete(node.get['parent']); 
+        if(nodeSet.has(node.get('parent'))){
+            nodeSet.delete(node.get('parent')); 
         }
 
     }
@@ -21,8 +19,8 @@ async function getSuggestions(list){
     var childrenMap = new Map(); 
     for (child of childUrls){
         for (potentialMatch of list){
-            if (child == potentialMatch.get['self']){
-                childrenMap.set(child, potentialMatch.get['name']);
+            if (child == potentialMatch.get('self')){
+                childrenMap.set(child, potentialMatch.get('name'));
             }
         }
     } 
@@ -43,34 +41,26 @@ async function getSuggestions(list){
 }
 
 async function createGraphList(){
-    await giveName();
-    var list = await fixDict(); 
-    for(dict in list) {
+    await makeNames();
+    var list = await exportList(); 
+    for(dict of list) {
         dict.set("ai", false);
     }
-    list = getSuggestions(list);
+    list = await getSuggestions(list);
+    
+    // Print raw graph data
+    console.log("=== Raw Graph Data from createGraphList ===");
+    list.forEach((item, index) => {
+        console.log(`Graph Item ${index + 1}:`);
+        console.log(`- Self: ${item.get('self')}`);
+        console.log(`- Parent: ${item.get('parent')}`);
+        console.log(`- Name: ${item.get('name')}`);
+        console.log(`- AI Generated: ${item.get('ai')}`);
+    });
+    
     return list; 
 }
 
-document.getElementById('reload').addEventListener('click',function (){
-    alert("HGGGG")
-    var graph = new Springy.Graph();
-
-    const cornflowerBlue = '#5959FB';
-    const lightGray = '#E0E0E2'; // actually alto
-
-    var graphList = createGraphList(); 
-
-    var nodeMap = new Map()
-
-    for(dict in graphList){
-        nodeMap.set(dict.get['self'], graph.newNode({label: dict.get['name'], func(){window.open(dict.get['self'])}}))
-    }
-
-    for(dict in graphList){
-        graph.newEdge(nodeMap.get[dict.get['parent']], nodeMap.get[dict.get['self']])
-    }
-
- 
-});
-
+// Expose the function to the window object for direct console access
+window.createGraphList = createGraphList;
+window.printRawGraphList = printGraphList;
