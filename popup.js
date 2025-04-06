@@ -3,7 +3,7 @@
 
 var aiRecommend = false;
 
-var graph = new Springy.Graph();
+/*var graph = new Springy.Graph();
 
 const cornflowerBlue = '#5959FB';
 const lightGray = '#E0E0E2'; // actually alto
@@ -57,6 +57,9 @@ document.getElementById('network').addEventListener('wheel', (event) => {
   //alert(scale);
 }, { passive: false }); // Important for preventDefault()
 
+ */
+
+
 document.getElementById('ai').addEventListener('click', function() {
   if (aiRecommend) {
     aiRecommend = false;
@@ -66,11 +69,17 @@ document.getElementById('ai').addEventListener('click', function() {
 })
 
 document.getElementById('back').addEventListener('click', async function(){
-  alert("Hello World");
+  //alert("Hello World");
   await chrome.storage.local.set({ "welcomed": false })
   window.location.href = "index.html";
 });
 
+
+/* document.getElementById('reload').addEventListener('click',  function(){
+  alert("Hello World");
+  createGraph();
+});
+ */
 
 //document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");}  );
 
