@@ -2,7 +2,7 @@
 //document.getDocumentElementById.addEventListener('click', newAlert);
 
 var aiRecommend = false;
-
+/*
 var graph = new Springy.Graph();
 
 const cornflowerBlue = '#5959FB';
@@ -36,7 +36,7 @@ jQuery(function(){
       console.log('Node selected: ' + JSON.stringify(node.data));
     }
   });
-});
+});*/
 
 minScale = 0.1;
 maxScale = 5;
