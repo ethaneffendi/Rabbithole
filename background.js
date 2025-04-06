@@ -73,10 +73,8 @@ class TabEventProcessor {
                 }
                 var graphData = (await chrome.storage.local.get(['graphData'])).graphData ?? []
 
-                if (!data.url.includes("://")) {//PORT WARNING
-                    var text = await getInnerTextForTab(data.id)
-                    //console.log("text", text,)
-                }
+                var text = await getInnerTextForTab(data.id)
+                console.log(text)
 
                 graphData.push({
                     self: data.url,
