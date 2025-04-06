@@ -135,19 +135,6 @@ async function giveSuggestion(topic) {
     }
 }
 
-async function createGraph() {
-    try {
-        const result = await chrome.storage.local.get(['graphData']);
-        const graphData = result.graphData || [];
-        // Implement graph creation here
-        logInfo("Graph data:", graphData.length, "entries");
-        return {};
-    } catch (error) {
-        logError("Error in createGraph:", error);
-        return {};
-    }
-}
-
 // Add progress tracking for dictionary fixing
 let fixDictStatus = {
     inProgress: false,
@@ -180,13 +167,13 @@ async function fixDict() {
         const result = await chrome.storage.local.get(['graphData']);
         const graphData = result.graphData || [];
         
-        // Initialize progress
-        updateFixDictProgress(0, graphData.length);
-        
         logInfo(`Processing ${graphData.length} entries for naming`);
         
         // Create a new array to hold the updated items
         const updatedGraphData = [];
+        
+        // Create a dictionary object for returning URL -> name mapping
+        const dictionary = {};
         
         for (let i = 0; i < graphData.length; i++) {
             const item = graphData[i];
@@ -199,6 +186,9 @@ async function fixDict() {
             if (item.name) {
                 logVerbose(`Item ${i+1} already has name: ${item.name}`);
                 updatedGraphData.push(item);
+                if (item.self) {
+                    dictionary[item.self] = item.name;
+                }
                 continue;
             }
             
@@ -213,6 +203,11 @@ async function fixDict() {
                 ...item,
                 name: name
             };
+            
+            // Add to dictionary
+            if (updatedItem.self) {
+                dictionary[updatedItem.self] = name;
+            }
             
             // For debugging
             logInfo(`Named item ${i+1}: "${name}"`);
@@ -233,12 +228,12 @@ async function fixDict() {
         updateFixDictProgress(graphData.length, graphData.length, true);
         
         logInfo("Dictionary fixed successfully");
-        return true;
+        return dictionary;
     } catch (error) {
         logError("Error in fixDict:", error);
         // Update progress as complete with error
         updateFixDictProgress(0, 0, true);
-        return false;
+        return {};
     }
 }
 
@@ -253,7 +248,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 logInfo("Pipeline module loaded");
 // Expose the function to the window object
 window.fixDict = fixDict;
-window.createGraph = createGraph;
 
 // Also expose for module contexts
-export { fixDict, createGraph, giveName };
+export { fixDict, giveName, promptAI, giveSuggestion };

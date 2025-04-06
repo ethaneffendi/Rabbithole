@@ -1,29 +1,61 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="style.css">
+  <title>Rabbithole</title>
   <style>
-    .container {
+    body {
       width: 400px;
-      height: 400px;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 15px;
+      background-color: #f8f9fa;
+    }
+    .container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4299e1;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #3182ce;
+    }
+    h1 {
+      font-size: 18px;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #2d3748;
+    }
+    .separator {
+      border-top: 1px solid #e2e8f0;
+      margin: 5px 0;
     }
   </style>
 </head>
 
 <body>
-  <button id="get_urls">Get Urls</button>
-  <button id="clear_storage">Clear Storage</button>
-  <button id="fix_dict">Fix Dict</button>
-</body>
-<script type='module' src="pipeline.js"></script>
-<script src="proper.js"></script>
-=======
-  <button id="fix_dict">Fix Dict</button>
-  <button id="fix_and_show">Fix and Show</button>
-  <button id="fix_and_show_raw">Fix and Show Raw</button>
+  <h1>Rabbithole Browser History</h1>
+  <div class="container">
+    <button id="get_urls">Get Urls</button>
+    <button id="fix_dict">Fix Dict</button>
+    <div class="separator"></div>
+    <button id="fix_and_show">Fix and Show</button>
+    <button id="fix_and_show_raw">Fix and Show Raw</button>
+    <button id="export_dict">Export Dictionary</button>
+    <div class="separator"></div>
+    <button id="clear_storage">Clear Storage</button>
+  </div>
   <script src="proper.js"></script>
   <script type="module" src="pipeline.js"></script>
 </body>
->>>>>>> Stashed changes
 
 </html>

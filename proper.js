@@ -267,6 +267,29 @@ document.addEventListener('DOMContentLoaded', function() {
         return graphData.length;
     }
     
+    // Helper function to export the dictionary
+    async function exportDictionary() {
+        try {
+            // Get the dictionary data
+            const result = await chrome.storage.local.get(['graphData']);
+            const graphData = result.graphData || [];
+            
+            // Create a dictionary object with URL keys and name values
+            const dictionary = {};
+            graphData.forEach(entry => {
+                if (entry.self && entry.name) {
+                    dictionary[entry.self] = entry.name;
+                }
+            });
+            
+            return dictionary;
+        } catch (error) {
+            console.error("Error exporting dictionary:", error);
+            alert("Error exporting dictionary: " + error.message);
+            return null;
+        }
+    }
+    
     // Helper function to fix dictionary
     async function fixDictionary() {
         try {
@@ -358,6 +381,22 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             hideProgressModal();
             console.error("Error in fix_and_show_raw:", error);
+            alert("Error: " + error.message);
+        }
+    });
+    
+    // Export Dictionary button
+    document.getElementById("export_dict").addEventListener('click', async function() {
+        try {
+            // First fix the dictionary to ensure all entries are named
+            await fixDictionary();
+            hideProgressModal();
+            
+            // Then export the dictionary
+            await exportDictionary();
+        } catch (error) {
+            hideProgressModal();
+            console.error("Error in export_dict:", error);
             alert("Error: " + error.message);
         }
     });

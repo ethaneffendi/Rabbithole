@@ -250,23 +250,82 @@ async function giveName(contents) {
 
 async function createGraph() {
     try {
+        // Get graph data from storage
         const result = await chrome.storage.local.get(['graphData']);
         const graphData = result.graphData || [];
-        var graph = {}; // Replace with actual graph implementation
-        var nodes = new Map();
         
-        for (const item of graphData) {
-            const contents = item.data || "";
-            const parentName = await giveName(contents);
-            nodes.set(item.parent, { label: parentName });
-            nodes.set(item.self, { label: parentName });
-            // Implementation for adding edge would go here
+        logInfo(`Creating graph from ${graphData.length} entries`);
+        
+        // Check if Springy is available
+        if (typeof Springy === 'undefined') {
+            logError("Springy.js is not loaded. Please ensure it's included in your HTML.");
+            return null;
         }
+        
+        // Create a new Springy graph
+        const graph = new Springy.Graph();
+        
+        // Track nodes to avoid duplicates
+        const nodeMap = new Map();
+        
+        // First pass: Create all nodes
+        for (const entry of graphData) {
+            const parentUrl = entry.parent || "(root)";
+            const selfUrl = entry.self || "(unknown)";
+            
+            // Create parent node if it doesn't exist
+            if (!nodeMap.has(parentUrl)) {
+                // Get parent name from graph data or use a default
+                const parentName = findNameForUrl(graphData, parentUrl) || "start page";
+                nodeMap.set(parentUrl, graph.newNode({
+                    url: parentUrl,
+                    label: parentName
+                }));
+            }
+            
+            // Create self node if it doesn't exist
+            if (!nodeMap.has(selfUrl)) {
+                nodeMap.set(selfUrl, graph.newNode({
+                    url: selfUrl,
+                    label: entry.name || "unnamed page"
+                }));
+            }
+        }
+        
+        // Second pass: Create edges
+        for (const entry of graphData) {
+            if (entry.parent && entry.self) {
+                const parentNode = nodeMap.get(entry.parent);
+                const selfNode = nodeMap.get(entry.self);
+                
+                if (parentNode && selfNode) {
+                    // Create edge with timestamp as data
+                    graph.newEdge(parentNode, selfNode, {
+                        timestamp: entry.timestamp,
+                        color: '#cccccc'
+                    });
+                }
+            }
+        }
+        
+        logInfo(`Graph created with ${nodeMap.size} nodes`);
         return graph;
     } catch (error) {
-        logError("Error in createGraph:", error);
-        return {};
+        logError("Error creating graph:", error);
+        return null;
     }
+}
+
+/**
+ * Helper function to find the name for a URL in the graph data
+ */
+function findNameForUrl(graphData, url) {
+    for (const entry of graphData) {
+        if (entry.self === url && entry.name) {
+            return entry.name;
+        }
+    }
+    return null;
 }
 
 async function fixDict() {
@@ -280,21 +339,30 @@ async function fixDict() {
         // Create a new array to hold the updated items
         const updatedGraphData = [];
         
+        // Create a dictionary object for returning URL -> name mapping
+        const dictionary = {};
+        
         for (let i = 0; i < graphData.length; i++) {
             const item = graphData[i];
             logVerbose(`Processing item ${i+1}/${graphData.length}: ${item.self}`);
+            
+            // Update progress
+            updateFixDictProgress(i, graphData.length);
             
             // Skip items that already have a name
             if (item.name && item.name !== "") {
                 logVerbose(`Item ${i+1} already has name: ${item.name}`);
                 updatedGraphData.push(item);
+                if (item.self) {
+                    dictionary[item.self] = item.name;
+                }
                 continue;
             }
             
             // Get name from data
             const contentText = item.data || "";
             // Use a shorter text sample to avoid API limits
-            const textSample = contentText.substring(0, 500);
+            const textSample = contentText.substring(0, 1000);
             const name = await giveName(textSample);
             
             // Create a new object with all existing properties plus the name
@@ -302,6 +370,11 @@ async function fixDict() {
                 ...item,
                 name: name
             };
+            
+            // Add to dictionary
+            if (updatedItem.self) {
+                dictionary[updatedItem.self] = name;
+            }
             
             // For debugging
             logInfo(`Named item ${i+1}: "${name}"`);
@@ -318,11 +391,16 @@ async function fixDict() {
             graphData: updatedGraphData
         });
         
+        // Update progress as complete
+        updateFixDictProgress(graphData.length, graphData.length, true);
+        
         logInfo("Dictionary fixed successfully");
-        return true;
+        return dictionary;
     } catch (error) {
         logError("Error in fixDict:", error);
-        return false;
+        // Update progress as complete with error
+        updateFixDictProgress(0, 0, true);
+        return {};
     }
 }
 

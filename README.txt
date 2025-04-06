@@ -12,6 +12,7 @@ Rabbithole helps you understand your browsing patterns by recording the pages yo
 2. Captures text content from each page
 3. Records parent-child relationships between pages
 4. Uses AI to generate descriptive names for each page
+5. Provides export options for the collected data
 
 ## Installation
 
@@ -22,10 +23,20 @@ Rabbithole helps you understand your browsing patterns by recording the pages yo
 ## Button Functions
 
 - **Get Urls**: Displays collected browsing data in a formatted view
-- **Clear Storage**: Removes all collected data
 - **Fix Dict**: Processes unnamed entries to add topic names
 - **Fix and Show**: Combines naming and displaying formatted data
 - **Fix and Show Raw**: Combines naming and displaying raw JSON data
+- **Export Dictionary**: Exports a dictionary mapping URLs to their topic names
+- **Clear Storage**: Removes all collected data
+
+## Dictionary Export
+
+The dictionary export feature allows you to:
+- View a clean table of URLs and their corresponding topic names
+- Copy the dictionary as a JSON object
+- Download the dictionary as a JSON file
+- Share the topic mappings with other tools or applications
+- See all named web pages in a single view
 
 ## Function Definitions
 
@@ -50,8 +61,7 @@ Rabbithole helps you understand your browsing patterns by recording the pages yo
 #### Data Processing
 
 - `giveName(contents)`: Uses promptAI to generate topic name from text
-- `createGraph()`: Creates a graph structure from collected browsing data
-- `fixDict()`: Processes entries to add topic names
+- `fixDict()`: Processes entries to add topic names and returns a dictionary of URL-to-name mappings
 - `updateFixDictProgress(processed, total, isDone)`: Updates progress tracking
 
 #### Event Listeners
@@ -81,6 +91,7 @@ Rabbithole helps you understand your browsing patterns by recording the pages yo
 
 - `displayUrlData()`: Shows formatted browsing history in a new tab
 - `displayRawData()`: Shows raw JSON data with copy/download options
+- `exportDictionary()`: Creates and shows a dictionary of URLs to topic names
 - `fixDictionary()`: Wrapper that calls the background script's fixDict function
 
 #### Event Handlers
@@ -92,8 +103,8 @@ Rabbithole helps you understand your browsing patterns by recording the pages yo
 
 - `promptAI(prompt, config)`: Generic AI interaction function
 - `giveName(contents)`: Uses promptAI to generate topic names
-- `createGraph()`: Graph creation function (placeholder)
-- `fixDict()`: Processes entries to add names
+- `giveSuggestion(topic)`: Generates related topic and URL suggestions
+- `fixDict()`: Processes entries to add names and returns a dictionary
 
 ## Logging System
 
