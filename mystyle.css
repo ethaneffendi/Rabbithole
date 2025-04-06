@@ -26,6 +26,7 @@
 }
 
 .button {
+    border-radius: 25px;
     background-color: #04AA6D; /* Green */
     border: none;
     color: white;
@@ -38,6 +39,7 @@
     transition-duration: 0.4s;
     cursor: pointer;
     font-family: 'Mukta', sans-serif;
+
   }
 
 .button5 {
@@ -50,5 +52,9 @@
     background-color: #555555;
     color: white;
   }
-
-
+  
+ #divider {
+    border-bottom: 3px solid black; /* Light gray divider */
+    width: 99%;
+    padding: 20px auto;
+  }
