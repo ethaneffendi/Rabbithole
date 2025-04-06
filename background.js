@@ -2,7 +2,7 @@
 console.log("🚀 Rabbithole background service worker starting...");
 
 // Global debug level (0=off, 1=errors only, 2=important info, 3=verbose)
-const DEBUG_LEVEL = 1;
+const DEBUG_LEVEL = 3;
 
 // Improved logging functions
 function logError(message, ...args) {

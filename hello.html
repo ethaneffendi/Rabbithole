@@ -16,7 +16,6 @@
       gap: 10px;
     }
   </style>
-  <script type="text/javascript" src="jquery.js"></script>
 <head>
   
   <title>Big Graph</title>
@@ -25,6 +24,7 @@
   <div class="header">
     <h2>Rabbithole</h2>
     <div class="button-container">
+      <button id="reload" class="button button5" style="padding:5px 32px">Reload</button>
       <button id="back" class="button button5" style="padding:5px 32px">Back</button>
       <button id="ai" style="padding:10px 32px" class="button button5"  style="padding:10px 32px">AI</button>
     </div>
@@ -37,10 +37,10 @@
 <body>
   <script src="springy.js"></script>
   <script src="springyui.js"></script>
-  <script src="forUI.js"></script>
+  
   <div id="divider"></div>
   <canvas id="network" , width="400" height="350"></canvas>
-  <script src='popup.js'></script>
+  <script type="module" src="forUI.js"></script>
 </body>
 
 </html>

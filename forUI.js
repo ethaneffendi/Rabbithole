@@ -49,3 +49,24 @@ async function createGraphList(){
     list = getSuggestions(list);
     return list; 
 }
+
+document.getElementById('reload').addEventListener('click', () => {
+    console.log("HGGG")
+    alert("HGGGG")
+    var graph = new Springy.Graph();
+
+    const cornflowerBlue = '#5959FB';
+    const lightGray = '#E0E0E2'; // actually alto
+
+    var graphList = createGraphList(); 
+
+    var nodeMap = new Map()
+
+    for(dict in graphList){
+        nodeMap.set(dict.get['self'], graph.newNode({label: dict.get['name'], func(){window.open(dict.get['self'])}}))
+    }
+
+    for(dict in graphList){
+        graph.newEdge(nodeMap.get[dict.get['parent']], nodeMap.get[dict.get['self']])
+    }
+})
