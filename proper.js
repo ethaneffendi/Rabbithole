@@ -1,3 +1,5 @@
+
+
 document.getElementById("get_urls").addEventListener('click', async function () {
     var newWeb = window.open()
     newWeb.document.writeln(JSON.stringify(await chrome.storage.local.get(['graphData'])))
@@ -8,7 +10,7 @@ document.getElementById("clear_storage").addEventListener('click', async functio
         tabId: 0,
         graphData: [],
     })
-});
+}); 
 document.getElementById("fix_dict").addEventListener('click', async function () {
     await fixDict()
 });
