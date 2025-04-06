@@ -3,7 +3,7 @@
 
 var aiRecommend = false;
 
-/*var graph = new Springy.Graph();
+var graph = new Springy.Graph();
 
 const cornflowerBlue = '#5959FB';
 const lightGray = '#E0E0E2'; // actually alto
@@ -57,7 +57,7 @@ document.getElementById('network').addEventListener('wheel', (event) => {
   //alert(scale);
 }, { passive: false }); // Important for preventDefault()
 
- */
+ 
 
 
 document.getElementById('ai').addEventListener('click', function() {

@@ -1,6 +1,6 @@
 import {  fixDict, giveName, giveSuggestion } from './pipeline.js';
 
-alert("called");
+//alert("called");
 
 function getEdges(list){
     var nodeSet = new Set();
