@@ -1,50 +1,42 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const nodes = new vis.DataSet([
-      { id: 1, label: "Animal" },
-      { id: 2, label: "Mammal" },
-      { id: 3, label: "Bird" },
-      { id: 4, label: "Dog" },
-      { id: 5, label: "Cat" },
-      { id: 6, label: "Sparrow" }
-    ]);
-  
-    const edges = new vis.DataSet([
-      { from: 1, to: 2, label: "is-a" },
-      { from: 1, to: 3, label: "is-a" },
-      { from: 2, to: 4, label: "is-a" },
-      { from: 2, to: 5, label: "is-a" },
-      { from: 3, to: 6, label: "is-a" }
-    ]);
-  
-    const container = document.getElementById('network');
-    const data = { nodes, edges };
-  
-    const options = {
-      edges: {
-        arrows: { to: true },
-        font: { align: 'middle' }
-      },
-      nodes: {
-        shape: 'dot',
-        size: 16,
-        font: { size: 14 }
-      },
-      physics: {
-        solver: 'forceAtlas2Based',
-        forceAtlas2Based: {
-          gravitationalConstant: -60,
-          springLength: 100,
-          springConstant: 0.08
-        },
-        stabilization: { iterations: 100 }
-      },
-      interaction: {
-        hover: true,
-        dragNodes: true,
-        zoomView: true
-      }
-    };
-  
-    new vis.Network(container, data, options);
-  });
-  
+try{
+    require('vis-network');
+
+} catch(e){ }
+function closeWindow() {
+    console.log("Closing the window");
+    alert("Closing the window");
+    window.close();
+    
+}
+
+document.getElementById('example').textContent = 'New World!';
+document.getElementById('start').addEventListener('click', closeWindow);
+document.getElementById('network').textContent = 'New Network!';
+document.getElementById('example').textContent = 'Best World!';
+
+// create an array with nodes
+var nodes = new vis.DataSet([
+    { id: 1, label: "Node 1" },
+    { id: 2, label: "Node 2" },
+    { id: 3, label: "Node 3" },
+    { id: 4, label: "Node 4" },
+    { id: 5, label: "Node 5" },
+  ]);
+
+  // create an array with edges
+  var edges = new vis.DataSet([
+    { from: 1, to: 3 },
+    { from: 1, to: 2 },
+    { from: 2, to: 4 },
+    { from: 2, to: 5 },
+    { from: 3, to: 3 },
+  ]);
+
+  // create a network
+  var container = document.getElementById("mynetwork");
+  var data = {
+    nodes: nodes,
+    edges: edges,
+  };
+  var options = {};
+  var network = new vis.Network(container, data, options);

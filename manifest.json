@@ -1,6 +1,12 @@
 {
-  "manifest_version": 3,
-  "name": "Ontology Graph Viewer",
+  "name": "Hello Extensions",
+  "description": "Base Level Extension",
   "version": "1.0",
-  "description": "Visualize ontology relationships using a graph view."
+  "manifest_version": 3,
+  "permissions": ["alarms", "notifications", "storage"],
+  
+  "action": {
+    "default_popup": "hello.html",
+    "default_icon": "hello_extensions.png"
+  }
 }
