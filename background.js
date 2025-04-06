@@ -1,26 +1,91 @@
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-    console.log("new tab! activation")
-    try {
-        const tab = await chrome.tabs.get(activeInfo.tabId);
-        if (tab.url == "") { return }
-        await chrome.storage.local.set({ currentUrl: tab.url });
-        console.log('activation', await chrome.storage.local.get(['currentUrl']));
-    } catch (error) {
-        console.log('Error activation:', error);
+async function getCurrentTabId() {
+    return new Promise(resolve => {
+        chrome.tabs.query({
+            active: true,
+            currentWindow: true
+        }, tabs => resolve(tabs[0]?.id));
+    });
+}
+
+class TabEventProcessor {
+    constructor() {
+        this.queue = [];
+        this.processing = false;
     }
+
+    async enqueue(eventType, data, parent) {
+        return new Promise((resolve) => {
+            this.queue.push({ eventType, data, parent, resolve });
+            this.processNext();
+        });
+    }
+
+    async processNext() {
+        console.log(this.processing, this.queue)
+        if (this.processing || this.queue.length === 0) return;
+
+        const { eventType, data, parent, resolve } = this.queue.shift();
+        this.processing = true;
+
+        try {
+            if (eventType === 'activation') {
+                // Fixed: Using activeInfo.tabId directly
+                const tab = await chrome.tabs.get(data.tabId);
+                if (tab.url == "") { return resolve() }
+
+                await chrome.storage.local.set({ currentUrl: tab.url });
+                console.log('switch', await chrome.storage.local.get(['currentUrl']));
+            } else if (eventType === 'update') {
+                const realId = await getCurrentTabId();
+                if (data.url == "chrome://newtab/") return;
+
+                if (data.changeInfo.status === 'complete' && data.id == realId) {
+                    await chrome.storage.local.set({
+                        currentUrl: data.url,
+                        tabId: data.id
+                    });
+                    console.log('new tab', await chrome.storage.local.get(['currentUrl']));
+                } else if (data.changeInfo.status === 'complete') {
+                    console.log('branched', data.url)
+                }
+                var graphData = (await chrome.storage.local.get(['graphData'])).graphData ?? []
+
+                graphData.push({
+                    self: data.url,
+                    parent: parent.currentUrl
+                })//remember to add data of the page
+                await chrome.storage.local.set({graphData: graphData})
+            }
+            resolve();
+        } catch (error) {
+            console.error(`Error handling ${eventType}:`, error);
+            reject(error);
+        } finally {
+            this.processing = false;
+            this.updating = false;
+            this.processNext();
+        }
+    }
+}
+
+// Initialize processor
+const tabProcessor = new TabEventProcessor();
+
+// Set up listeners
+chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    console.log("STARTED ACTIVATION")
+    await tabProcessor.enqueue('activation', activeInfo, "");
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-    try {
-        // Only process actual URL changes
-        if (changeInfo.status === 'complete' && tab.url) {
-            await chrome.storage.local.set({
-                currentUrl: tab.url,
-                tabId: tab.id
-            });
-            console.log('update', await chrome.storage.local.get(['currentUrl']));
-        }
-    } catch (error) {
-        console.error('Error handling tab update:', error);
+    current_tab_url = await chrome.storage.local.get(['currentUrl']);
+    if (changeInfo.status === 'complete') {
+        console.log("STARTED UPDATE")
+        await tabProcessor.enqueue('update', {
+            id: tabId,
+            tabId,
+            changeInfo,
+            url: tab.url
+        }, current_tab_url);
     }
 });

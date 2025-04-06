@@ -9,13 +9,10 @@
     "service_worker": "background.js",
     "mode": "module"
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "js": ["proper.js"]
-  }],
   "permissions": [
     "tabs",
     "storage",
-    "scripting"
+    "scripting",
+    "webNavigation"
   ]
 }
