@@ -1,7 +1,7 @@
 
 //document.getDocumentElementById.addEventListener('click', newAlert);
 
-var aiRecommend = false;
+//var aiRecommend = false;
 /*
 var graph = new Springy.Graph();
 
@@ -37,7 +37,7 @@ jQuery(function(){
     }
   });
 });*/
-
+/* 
 minScale = 0.1;
 maxScale = 5;
 zoomSensitivity = 0.1;
@@ -56,24 +56,24 @@ document.getElementById('network').addEventListener('wheel', (event) => {
   scale = Math.max(minScale, Math.min(maxScale, newScale));
   //alert(scale);
 }, { passive: false }); // Important for preventDefault()
-
+ */
  
 
-
+/* 
 document.getElementById('ai').addEventListener('click', function() {
   if (aiRecommend) {
     aiRecommend = false;
   } else {
     aiRecommend = true;
   }
-})
-
+}) */
+/* 
 document.getElementById('back').addEventListener('click', async function(){
   //alert("Hello World");
   await chrome.storage.local.set({ "welcomed": false })
   window.location.href = "index.html";
 });
-
+ */
 
 /* document.getElementById('reload').addEventListener('click',  function(){
   alert("Hello World");
