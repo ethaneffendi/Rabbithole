@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@google/genai": "^0.7.0"
+  },
+  "name": "rabbithole",
+  "version": "1.0.0",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethaneffendi/Rabbithole.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ethaneffendi/Rabbithole/issues"
+  },
+  "homepage": "https://github.com/ethaneffendi/Rabbithole#readme",
+  "description": ""
+}
