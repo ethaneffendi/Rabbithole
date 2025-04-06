@@ -1,7 +1,8 @@
 
-document.getElementById('beginButton').addEventListener('click', async function () {
-    await chrome.storage.local.set({ "welcomed": true })
 
+document.getElementById('beginButton').addEventListener('click', async function () {
+    alert("Hello World");
+    await chrome.storage.local.set({ "welcomed": true })
     window.location.href = "hello.html";
 
 });

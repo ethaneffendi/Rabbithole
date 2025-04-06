@@ -1,6 +1,6 @@
 {
-  "name": "Graph Extensions",
-  "description": "Base Level Extension",
+  "name": "Rabbithole Research",
+  "description": "All the research, without the mess.",
   "version": "1.0",
   "manifest_version": 3,
   "permissions": [
@@ -10,7 +10,12 @@
   ],
   "action": {
     "default_popup": "index.html",
-    "default_icon": "hello_extensions.png"
+    "default_icon": "/images/icon16.png"
+  },
+  "icons": {
+    "16": "/images/icon16.png",
+    "32": "/images/icon32.png",
+    "48": "/images/icon48.png",
+    "128": "/images/icon128.png"
   }
-  
 }
