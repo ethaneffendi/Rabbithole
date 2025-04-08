@@ -3,11 +3,10 @@
   "version": "1.0",
   "manifest_version": 3,
   "action": {
-    "default_popup": "index.html"
+    "default_popup": "test-backend.html"
   },
   "background": {
-    "service_worker": "background.js",
-    "mode": "module"
+    "service_worker": "backend.js"
   },
   "permissions": [
     "tabs",
