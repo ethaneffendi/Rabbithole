@@ -1,12 +1,12 @@
-# Rabbithole Browser Extension
+#Rabbithole Browser Extension
 
 A browser extension that tracks and visualizes your browsing history with AI-powered topic naming.
 
-## Overview
+##Overview
 
 Rabbithole helps you understand your browsing patterns by recording the pages you visit and their relationships (parent-child). It uses Google's Gemini AI to automatically name topics based on page content.
 
-## How It Works
+##How It Works
 
 1. The extension tracks tab navigation events
 2. Captures text content from each page
