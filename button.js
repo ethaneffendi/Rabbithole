@@ -6,9 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
     window.location.href = "index.html";
   });
 
-  document.getElementById("ai").addEventListener("click", function () {
-    alert("This is useless now? (unless you want to do prediction function which i don't)")
+  document.getElementById("reset").addEventListener("click", async function () {
+    await chrome.storage.local.set({ graphData: []});
   });
-
-  
 });

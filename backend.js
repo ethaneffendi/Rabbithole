@@ -79,10 +79,8 @@ class TabEventProcessor {
                         currentUrl: data.url,
                         tabId: data.id
                     });
-                    //console.log('new tab', await chrome.storage.local.get(['currentUrl']));
-                } else if (data.changeInfo.status === 'complete') {
-                    //console.log('branched', data.url)
                 }
+                
                 var graphData = (await chrome.storage.local.get(['graphData'])).graphData ?? []
 
                 var text = null;
@@ -90,27 +88,20 @@ class TabEventProcessor {
                 if (!isRestrictedUrl(data.url)) {
                     text = await getInnerTextForTab(data.id);
                 } else {
-                    // console.log(`Skipping content extraction for restricted URL: ${data.url}`);
                     text = "Restricted Url (Such as chrome://, chrome-extension://, etc.) Name it invalid."
                 }
-                // console.log(text)
 
                 graphData.push({
                     self: data.url,
                     parent: parent.currentUrl,
                     data: text
                 })
-                //graphData.push({
-                //    self: data.url,
-                //    parent: parent.currentUrl,
-                //    data: text
-                //})//remember to add data of the page
                 console.log("parent\n", parent.currentUrl, "\nself\n", data.url, "\n")
                 await chrome.storage.local.set({ graphData: graphData })
             }
             resolve();
         } catch (error) {
-            //console.error(`Error handling ${eventType}:`, error);
+            console.error(`Error handling ${eventType}:`, error);
             reject(error);
         } finally {
             this.processing = false;

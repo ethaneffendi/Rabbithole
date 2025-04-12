@@ -29,43 +29,59 @@ const lightGray = "#E0E0E2"; // actually alto
 //  graph.newEdge(dennis, bianca);
 
 document.addEventListener("DOMContentLoaded", async function () {
+  var data = (await chrome.storage.local.get(["graphData"])).graphData;
+  var unique_nodes = {};
+  var lonely_nodes = new Map();
+  for (var node of data) {
+    unique_nodes[node["self"]] = graph.newNode({
+      label: node["name"],
+      ondoubleclick: function () {
+        alert(node["self"]);
+      },
+    });
+    lonely_nodes.set(node["self"], false);
+    lonely_nodes.set(
+      node["parent"],
+      lonely_nodes.has(node["parent"]) ? lonely_nodes.get(node["parent"]) : true
+    );
+    // unique_nodes[node["parent"]] = graph.newNode({
+    //   label: node["parent"],
+    //   ondoubleclick: function () {
+    //     alert(node["parent"]);
+    //   },
+    // });
+  }
 
-var data = (await chrome.storage.local.get(["graphData"])).graphData;
-var unique_nodes = {};
-for (var node of data) {
-  unique_nodes[node["self"]] = graph.newNode({
-    label: node["name"],
-    ondoubleclick: function () {
-      alert(node["self"]);
-    },
-  });
-  unique_nodes[node["parent"]] = graph.newNode({
-    label: node["parent"],
-    ondoubleclick: function () {
-      alert(node["parent"]);
-    },
-  });
-}
+  for (var node of lonely_nodes.keys()) {
+    if (lonely_nodes.get(node) == true) {
+      unique_nodes[node] = graph.newNode({
+        label: "!!!lonely!!! CHECK POPUP.JS",
+        ondoubleclick: function () {
+          alert(node);
+        },
+      });
+    }
+  }
 
-for (var node of data) {
-  graph.newEdge(unique_nodes[node["self"]], unique_nodes[node["parent"]], {
-    color: lightGray,
-  });
-}
+  for (var node of data) {
+    graph.newEdge(unique_nodes[node["self"]], unique_nodes[node["parent"]], {
+      color: lightGray,
+    });
+  }
 
-jQuery(function () {
-  //alert("2");
-  var springy = (window.springy = jQuery("#network").springy({
-    graph: graph,
-  }));
-  /*nodeSelected: function(node){
+  jQuery(function () {
+    //alert("2");
+    var springy = (window.springy = jQuery("#network").springy({
+      graph: graph,
+    }));
+    /*nodeSelected: function(node){
       alert("3");
     }*/
-});
+  });
 
-minScale = 0.1;
-maxScale = 5;
-zoomSensitivity = 0.1;
+  minScale = 0.1;
+  maxScale = 5;
+  zoomSensitivity = 0.1;
 
   document.getElementById("network").addEventListener(
     "wheel",
