@@ -32,11 +32,11 @@ document.addEventListener("DOMContentLoaded", async function () {
   var data = (await chrome.storage.local.get(["graphData"])).graphData;
   var unique_nodes = {};
   var lonely_nodes = new Map();
-  for (var node of data) {
+  for (let node of data) {
     unique_nodes[node["self"]] = graph.newNode({
       label: node["name"],
       ondoubleclick: function () {
-        alert(node["self"]);
+        chrome.tabs.create({ url: node['self'] });
       },
     });
     lonely_nodes.set(node["self"], false);
@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // });
   }
 
-  for (var node of lonely_nodes.keys()) {
+  for (let node of lonely_nodes.keys()) {
     if (lonely_nodes.get(node) == true) {
       unique_nodes[node] = graph.newNode({
         label: "!!!lonely!!! CHECK POPUP.JS",
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   }
 
-  for (var node of data) {
+  for (let node of data) {
     graph.newEdge(unique_nodes[node["self"]], unique_nodes[node["parent"]], {
       color: lightGray,
     });
