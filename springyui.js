@@ -418,8 +418,9 @@ jQuery.fn.springy = function(params) {
 
 			var contentWidth = node.getWidth();
 			var contentHeight = node.getHeight();
-			var boxWidth = contentWidth + paddingX;
-			var boxHeight = contentHeight + paddingY;
+			var boxWidth = 100 + paddingX;
+			var boxHeight = 100 + paddingY;
+			//BRADLEY CHANGE
 
 			// The node radius - scales proportionally with zoom level
 			var nodeRadius = boxWidth/8;

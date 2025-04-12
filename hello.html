@@ -1,45 +1,41 @@
 <!DOCTYPE html>
 <html>
-<script type="text/javascript" src="jquery_new.js"></script>
-  <link rel="stylesheet" href="mystyle.css">
-  <style>
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-    }
-    .button-container {
-      display: flex;
-      gap: 10px;
-    }
-  </style>
-<head>
-  
-  <title>Big Graph</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Big Graph</title>
+    <link rel="stylesheet" href="mystyle.css" />
+    <script src="jquery_new.js"></script>
+    <style>
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+      }
+      .button-container {
+        display: flex;
+        gap: 10px;
+      }
+    </style>
+  </head>
 
-  <div class="header">
-    <h2>Rabbithole</h2>
-    <div class="button-container">
-      <button id="reload" class="button button5" >Reload</button>
-      <button id="back" class="button button5" >Back</button>
-      <button id="ai" class="button button5" >AI</button>
-      <script src = "button.js"></script>
+  <body>
+    <div class="header">
+      <h2>Rabbithole</h2>
+      <div class="button-container">
+        <button id="reload" class="button button5">Reload</button>
+        <button id="back" class="button button5">Back</button>
+        <button id="ai" class="button button5">AI</button>
+      </div>
     </div>
-  </div>
 
-<head>
-  
-</head>
+    <div id="divider"></div>
+    <canvas id="network" width="450" height="350"></canvas>
 
-<body>
-  <script src="springy.js"></script>
-  <script src="springyui.js"></script>
-  
-  <div id="divider"></div>
-  <canvas id="network" , width="450" height="350"></canvas>
-  <!-- <script type = "module" src = "forUI.js"></script> -->
-   <script src = "popup.js"></script>
-</body>
-
+    <!-- JavaScript scripts at the end of the body -->
+    <script src="springy.js"></script>
+    <script src="springyui.js"></script>
+    <script src="button.js"></script>
+    <script src="popup.js"></script>
+  </body>
 </html>

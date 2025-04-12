@@ -7,14 +7,8 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   document.getElementById("ai").addEventListener("click", function () {
-    //alert("Aied");
-    if (aiRecommend) {
-      aiRecommend = false;
-    } else {
-      aiRecommend = true;
-    }
+    alert("This is useless now? (unless you want to do prediction function which i don't)")
   });
 
   
 });
-

@@ -1,5 +1,3 @@
-
-
 async function getCurrentTabId() {
     return new Promise(resolve => {
         chrome.tabs.query({
