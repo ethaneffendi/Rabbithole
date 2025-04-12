@@ -8,5 +8,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("reset").addEventListener("click", async function () {
     await chrome.storage.local.set({ graphData: []});
+    await chrome.storage.local.set({ id_to_parent: {}});
   });
 });
