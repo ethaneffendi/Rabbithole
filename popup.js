@@ -1,3 +1,4 @@
+import { fixDict, createGraph } from "./pipeline.js";
 
 //document.getDocumentElementById.addEventListener('click', newAlert);
 
@@ -46,18 +47,18 @@ jQuery(function(){
     }*/ 
 });
 
-minScale = 0.1;
-maxScale = 5;
-zoomSensitivity = 0.1;
+  minScale = 0.1;
+  maxScale = 5;
+  zoomSensitivity = 0.1;
 
-document.getElementById('network').addEventListener('wheel', (event) => {
-  
-  event.preventDefault(); 
-  const delta = event.deltaY;
-  let newScale;
-  if (delta > 0) {
+  document.getElementById('network').addEventListener('wheel', (event) => {
+
+    event.preventDefault();
+    const delta = event.deltaY;
+    let newScale;
+    if (delta > 0) {
       newScale = scale - zoomSensitivity;
-  } else {
+    } else {
       newScale = scale + zoomSensitivity;
   }
   // Clamp the scale within the min/max bounds
@@ -89,8 +90,8 @@ document.getElementById('back').addEventListener('click', async function(){
 });
  */
 
-//document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");}  );
+  //document.getElementById('network').addEventListener('wheel', function(){alert("Hello World");}  );
 
 
-
+});
 
