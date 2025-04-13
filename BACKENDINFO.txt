@@ -1,0 +1,31 @@
+HELLO!
+BACKEND DO EVERYTHING FOR YOU
+AS LONG AS YOUR MANIFEST CONTAINS
+"
+  "background": {
+    "service_worker": "backend.js"
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+    "scripting",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+"
+THEN IT WILL WORK ADN DO EVERYTHING
+IN ORDER TO GET THE GRAPH DATA SIMPLY USE
+(await chrome.storage.local.get(['graphData'])).graphData
+AND YOU WILL GET IT IN OBJECT FORM
+
+!!!!!IMPORTANT THAT IT'S IN OBJECT FORM!!!!!
+IT'S MORE SIMILAR TO PYTHON DICTS THAN JAVASCRIPT MAPS
+AS INSTEAD OF .GET AND .SET
+YOU USE name['thing'] TO GET A REFERENCE (MEANING YOU DO IT TO SET IT TOO)
+
+THERE IS AN EXAMPLE OF CREATE GRAPH THAT'S AT THE END OF BACKEND.JS
+HOWEVER IT MIGHT NOT WORK, AND I DO NOT HAVE THE LIBRARY TO USE IT
+GOOD LUCK!
+ASK ME IF YOU HAVE PROBLEMS
