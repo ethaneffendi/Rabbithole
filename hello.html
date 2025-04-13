@@ -1,32 +1,31 @@
 <!DOCTYPE html>
 <html>
-<meta http-equiv="Content-Security-Policy"
-  content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js ">
-<script type="text/javascript" src="jquery.js"></script>
-  <link rel="stylesheet" href="mystyle.css">
-  <style>
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px;
-    }
-    .button-container {
-      display: flex;
-      gap: 10px;
-    }
-  </style>
-<head>
-  
-  <title>Big Graph</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Big Graph</title>
+    <link rel="stylesheet" href="mystyle.css" />
+    <script src="jquery_new.js"></script>
+    <style>
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+      }
+      .button-container {
+        display: flex;
+        gap: 10px;
+      }
+    </style>
+  </head>
 
-  <div class="header">
-    <h2>Rabbithole</h2>
-    <div class="button-container">
-      <button id="reload" class="button button5" >Reload</button>
-      <button id="back" class="button button5" >Back</button>
-      <button id="ai" class="button button5" >AI</button>
-      <script src = "button.js"></script>
+  <body>
+    <div class="header">
+      <h2>Rabbithole</h2>
+      <div class="button-container">
+        <button id="back" class="button buttonSmall">Back</button>
+        <button id="reset" class="button buttonSmall">Reset</button>
+      </div>
     </div>
   </div>
 
