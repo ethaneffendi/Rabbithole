@@ -28,6 +28,10 @@ const lightGray = "#E0E0E2"; // actually alto
 //  graph.newEdge(barbara, timothy);
 //  graph.newEdge(dennis, bianca);
 
+
+
+
+
 document.addEventListener("DOMContentLoaded", async function () {
   var data = (await chrome.storage.local.get(["graphData"])).graphData;
   var unique_nodes = {};
@@ -35,11 +39,38 @@ document.addEventListener("DOMContentLoaded", async function () {
   for (let node of data) {
     unique_nodes[node["self"]] = graph.newNode({
       label: node["name"],
+      url: node["self"],
+      parent: node["parent"],
       ondoubleclick: function () {
         chrome.tabs.create({ url: node['self'] });
       },
+      onrightclick: async function (node) {
+        graph.detachNode(node);
+        graph.removeNode(node);
+        //alert("node label: " + node.data.label + "node url: " + node.data.url);
+        var data = (await chrome.storage.local.get(["graphData"])).graphData;
+        for (node2 of data) {
+
+          //else if because of potential deletion.
+          if (node.data.url === node2["self"]) {
+            var index = data.indexOf(node2);
+            if (index > -1) {
+              data.splice(index, 1);
+            }
+
+            //alert("name: " + node2["name"] + "\nself: " + node2["self"] + "\nparent: " + node2["parent"]);
+          } else if (node.data.url === node2["parent"]) {
+            node2["parent"] = node.data.parent;
+            //alert("parent of " + node2["self"] + "name: " + node2["name"]);
+          }
+          await chrome.storage.local.set({ graphData: data });
+        }
+      }
+
+      //}
     });
     lonely_nodes.set(node["self"], false);
+
     lonely_nodes.set(
       node["parent"],
       lonely_nodes.has(node["parent"]) ? lonely_nodes.get(node["parent"]) : true
@@ -52,21 +83,51 @@ document.addEventListener("DOMContentLoaded", async function () {
     // });
   }
 
+  //lonely nodes fine trust
   for (let node of lonely_nodes.keys()) {
-    if (lonely_nodes.get(node) == true) {
+
+    /* if (lonely_nodes.get(node) == true) {
+      //alert(node);
       unique_nodes[node] = graph.newNode({
         label: "!!!lonely!!! CHECK POPUP.JS",
+        url: node,
         ondoubleclick: function () {
           alert(node);
         },
+        onrightclick: async function (node) {
+          graph.removeNode(node);
+          //alert("node label: " + node.data.label + "node url: " + node.data.url);
+          var data = (await chrome.storage.local.get(["graphData"])).graphData;
+          for (node2 of data) {
+            //alert(node2["self"]);
+            //alert(node.data.url);
+            alert(node2["self"]);
+            //else if because of potential deletion.
+            if (node.data.url === node2["self"]) {
+              alert('removed');
+              var index = data.indexOf(node2);
+              if (index > -1) {
+                data.splice(index, 1);
+              }
+
+              //alert("name: " + node2["name"] + "\nself: " + node2["self"] + "\nparent: " + node2["parent"]);
+            } //else if(node.data.url === node2["parent"]) {
+
+            //alert("parent of " + node2["self"] + "name: " + node2["name"]);
+            //}
+            await chrome.storage.local.set({ graphData: data });
+          }
+        }
       });
-    }
-  }
+    } */
+  } 
 
   for (let node of data) {
-    graph.newEdge(unique_nodes[node["self"]], unique_nodes[node["parent"]], {
-      color: lightGray,
-    });
+    if(!(node["self"] === undefined || node["parent"] === undefined)){
+      graph.newEdge(unique_nodes[node["self"]], unique_nodes[node["parent"]], {
+        color: lightGray,
+      });
+    }
   }
 
   jQuery(function () {

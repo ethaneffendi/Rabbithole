@@ -33,7 +33,7 @@
 	var Node = Springy.Node = function(id, data) {
 		this.id = id;
 		this.data = (data !== undefined) ? data : {};
-
+		
 	// Data fields used by layout algorithm in this file:
 	// this.data.mass
 	// Data used by default renderer in springyui.js
@@ -326,7 +326,7 @@
 
 	Layout.ForceDirected.prototype.spring = function(edge) {
 		if (!(edge.id in this.edgeSprings)) {
-			var length = (edge.data.length !== undefined) ? edge.data.length : 1.0;
+			var length = (edge.data.length !== undefined) ? edge.data.length : 1.0; // NOT edge length
 
 			var existingSpring = false;
 
@@ -395,9 +395,24 @@
 					var distance = d.magnitude() + 0.1; // avoid massive forces at small distances (and divide by zero)
 					var direction = d.normalise();
 
-					// apply force to each end point
-					point1.applyForce(direction.multiply(this.repulsion).divide(distance * distance * 0.5));
-					point2.applyForce(direction.multiply(this.repulsion).divide(distance * distance * -0.5));
+					// Calculate repulsion strength with a smooth transition
+					var repulsionFactor;
+                
+					if (distance < 500) {
+						// Maximum repulsion when distance is less than 250
+						repulsionFactor = 1000.0; 
+					} else {
+						// Gradually decrease from maximum to normal repulsion
+						// This formula creates a smooth transition that approaches 1.0 as distance increases
+						repulsionFactor = 1.0 + Math.max(0, 100.0 * Math.exp(-0.005 * (distance - 500)));
+					}
+					var repulsionForce = this.repulsion * repulsionFactor;
+					var safeDistance = distance + 0.1; // ensure we don't divide by a very small number
+					
+					// Apply forces with the calculated repulsion factor .divide(safeDistance * safeDistance * -0.5)
+					point1.applyForce(direction.multiply(repulsionForce).divide(safeDistance * safeDistance * 0.5));
+					point2.applyForce(direction.multiply(repulsionForce).divide(safeDistance * safeDistance * -0.5));
+					
 				}
 			});
 		});
@@ -417,8 +432,8 @@
 
 	Layout.ForceDirected.prototype.attractToCentre = function() {
 		this.eachNode(function(node, point) {
-			var direction = point.p.multiply(-1.0);
-			point.applyForce(direction.multiply(this.repulsion / 50.0));
+			var direction = point.p.multiply(-1.1);
+			point.applyForce(direction.multiply(this.repulsion / 100.0));
 		});
 	};
 
@@ -501,12 +516,14 @@
 	}
 
 	Layout.ForceDirected.prototype.tick = function(timestep) {
+		
 		this.applyCoulombsLaw();
 		this.applyHookesLaw();
 		this.attractToCentre();
 		this.updateVelocity(timestep);
 		this.updatePosition(timestep);
 	};
+	
 
 	// Find the nearest point to a particular position
 	Layout.ForceDirected.prototype.nearest = function(pos) {

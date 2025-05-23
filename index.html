@@ -1,66 +1,69 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Rabbithole Start</title>
-    <link rel="stylesheet" href="mystyle.css" />
-    <style>
-      html {
-        padding: 25px;
-      }
 
-      body {
-        border-radius: 25px;
-        border: 5px solid lightgray;
-        padding: 20px;
-        width: 418px;
-        height: 427px;
-        background-color: white;
-        margin: 0;
-        padding: 0;
-        text-align: center;
-        font-family: "Mukta", sans-serif;
-        overflow: hidden;
-        /* Hide anything that overflows the small height */
 
-        /* Use Flexbox for better centering in constrained space */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        /* Center items horizontally */
-        justify-content: center;
-        /* Center items vertically */
-      }
 
-      h1 {
-        margin: 0;
-        /* Remove default heading margin */
-        font-size: 50px;
-        /* Adjust size as needed */
-        font-weight: bold;
-        line-height: 1.1;
-        /* Reduce space above/below text */
-      }
 
-      hr {
-        border: none;
-        /* Remove default border */
-        border-top: 1px solid black;
-        /* Style the line */
-        width: 80%;
-        /* Make line shorter than full width */
-        margin: 2px 0;
-        /* Minimal vertical space around the line */
-        padding: 5px;
-      }
-    </style>
-  </head>
+<head>
+  <title>Rabbithole Start</title>
+  <link rel="stylesheet" href="mystyle.css" />
+  <style>
+    
 
-  <body>
-    <!-- <div id = "thingy"></div> -->
-    <img src="/images/rabbit.jpg" alt="Logo" />
-    <h1>Rabbithole</h1>
-    <hr/>
-    <button id="start" class="button button5">Start</button>
-    <script src="welcome.js"></script>
-  </body>
+    body {
+      border-radius: 25px;
+      border: none;
+      padding: 0px;
+      width: 440px;
+      height: 440px;
+      background-color: #fefeff;
+      margin: 25px;
+      padding: 0;
+      text-align: center;
+      font-family: "Mukta", sans-serif;
+      overflow: hidden;
+      /* 440 + 25 + 25 + 5 + 5 = 500 px total*/
+
+      /* Use Flexbox for better centering in constrained space */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Center items horizontally */
+      justify-content: center;
+      /* Center items vertically */
+    }
+
+    h1 {
+      margin: 0;
+      /* Remove default heading margin */
+      font-size: 50px;
+      /* Adjust size as needed */
+      font-weight: bold;
+      line-height: 1.1;
+      color: #5c5c5c;
+      /* Reduce space above/below text */
+    }
+
+    hr {
+      border: none;
+      /* Remove default border */
+      border-top: 1px solid #5c5c5c;
+      /* Style the line */
+      width: 80%;
+      /* Make line shorter than full width */
+      margin: 2px 0;
+      /* Minimal vertical space around the line */
+      padding: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- <div id = "thingy"></div> -->
+  <img src="/images/rabbit.jpg" alt="Logo" />
+  <h1>Rabbithole</h1>
+  <button id="start" class="button button5">Start</button>
+  <script src="welcome.js"></script>
+</body>
+
 </html>

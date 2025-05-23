@@ -1,40 +1,62 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>Big Graph</title>
-    <link rel="stylesheet" href="mystyle.css" />
-    <script src="jquery_new.js"></script>
-    <style>
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-      }
-      .button-container {
-        display: flex;
-        gap: 10px;
-      }
-    </style>
-  </head>
 
-  <body>
-    <div class="header">
-      <h2>Rabbithole</h2>
-      <div class="button-container">
-        <button id="back" class="button buttonSmall">Back</button>
-        <button id="reset" class="button buttonSmall">Reset</button>
-      </div>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <title>Big Graph</title>
+  <link rel="stylesheet" href="mystyle.css" />
+  <script src="jquery_new.js"></script>
+  <style>
+    body {
+      /*  border-radius: 25px;
+      border: 5px solid lightgray; */
+      padding: 0px;
+      width: 450px;
+      height: 450px;
+      background-color: #fefeff;
+      margin: 25px;
+      padding: 0;
+      text-align: center;
+      font-family: "Mukta", sans-serif;
+      overflow: hidden;
+      /* 450 + 25 + 25 = 500px */
+    }
 
-    <div id="divider"></div>
-    <canvas id="network" width="450" height="350"></canvas>
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0px;
+      width: 440px;
+      height: 50px;
+      border: none;
+      border-radius: 25px;
+      /*440 + 5 + 5 = 450 px */
+    }
 
-    <!-- JavaScript scripts at the end of the body -->
-    <script src="springy.js"></script>
-    <script src="springyui.js"></script>
-    <script src="button.js"></script>
-    <script src="popup.js"></script>
-  </body>
+    .button-container {
+      display: flex;
+      gap: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <button id="back" class="button buttonSmall"> < </button>
+        <div class="button-container">
+          <button id="info" class="button buttonSmall" style="border-radius: 50%; padding: 5px 20px;">i</button>
+          <button id="reset" class="button buttonSmall" style="border-radius: 50%; padding: 5px 15px;">r</button>
+        </div>
+  </div>
+
+  <canvas id="network" width="440" height="370" style="border-radius: 25px; border:none; padding: 0px; margin-top: 10px; "></canvas>
+<!--  50 + 400  = 500?-->
+  <!-- JavaScript scripts at the end of the body -->
+  <script src="springy.js"></script>
+  <script src="springyui.js"></script>
+  <script src="button.js"></script>
+  <script src="popup.js"></script>
+</body>
+
 </html>
