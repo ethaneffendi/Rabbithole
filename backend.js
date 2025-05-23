@@ -1,3 +1,14 @@
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.sidePanel.setOptions({
+    path: "hello.html",
+    enabled: true
+  });
+  
+  chrome.sidePanel.setPanelBehavior({ 
+    openPanelOnActionClick: true 
+  });
+});
+
 async function getCurrentTabId() {
   return new Promise((resolve) => {
     chrome.tabs.query(
