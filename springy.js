@@ -417,7 +417,7 @@
 				if (point1 !== point2)
 				{
 					var d = point1.p.subtract(point2.p);
-					var distance = d.magnitude() + 0.1; // avoid massive forces at small distances (and divide by zero)
+					var distance = (d.magnitude() + 0.1); // avoid massive forces at small distances (and divide by zero)
 					var direction = d.normalise();
 
 					// apply force to each end point
@@ -435,8 +435,8 @@
 			var direction = d.normalise();
 
 			// apply force to each end point
-			spring.point1.applyForce(direction.multiply(spring.k * displacement * -0.5));
-			spring.point2.applyForce(direction.multiply(spring.k * displacement * 0.5));
+			spring.point1.applyForce(direction.multiply(spring.k * displacement * -0.3));
+			spring.point2.applyForce(direction.multiply(spring.k * displacement * 0.3));
 		});
 	};
 

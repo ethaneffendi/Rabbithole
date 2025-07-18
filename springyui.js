@@ -134,8 +134,8 @@ jQuery.fn.springy = function(params) {
 			selected = dragged = nearest;
 			
 			if (selected.node !== null) {
-				dragged.point.m = 10000.0;
-
+				dragged.point.m = 10.0;
+				//IDK WHY REMOVING THIS MAKES NODES NOT STICK
 				if (nodeSelected) {
 					nodeSelected(selected.node);
 				}
