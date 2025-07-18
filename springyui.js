@@ -175,9 +175,14 @@ jQuery.fn.springy = function(params) {
 
 	jQuery(canvas).mousemove(function(e) {
 		var pos = jQuery(this).offset();
-		var mouseX = e.pageX - pos.left;
-		var mouseY = e.pageY - pos.top;
-		
+
+		var rawMouseX = e.pageX - pos.left;
+		var rawMouseY = e.pageY - pos.top;
+		var margin = 30; // prevent dragging too close to edge
+
+		var mouseX = Math.max(margin, Math.min(canvas.width - margin, rawMouseX));
+		var mouseY = Math.max(margin, Math.min(canvas.height - margin, rawMouseY));
+
 		if (canvasDragging) {
 			// Calculate delta movement and update offset
 			var deltaX = mouseX - canvasDragStartX;
