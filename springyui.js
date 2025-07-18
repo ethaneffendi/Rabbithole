@@ -216,10 +216,15 @@ jQuery.fn.springy = function(params) {
 		renderer.start();
 	});
 
-	jQuery(window).bind('mouseup',function(e) {
+	jQuery(canvas).mouseup(function(e) {
 		dragged = null;
 		canvasDragging = false;
 	});
+
+	// jQuery(window).bind('mouseup',function(e) {
+	// 	dragged = null;
+	// 	canvasDragging = false;
+	// });
 
 	var getTextWidth = function(node) {
 		var text = (node.data.label !== undefined) ? node.data.label : node.id;
