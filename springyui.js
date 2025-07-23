@@ -32,7 +32,7 @@ var reverseScale = 1/scale;
 
 jQuery.fn.springy = function(params) {
 	var graph = this.graph = params.graph || new Springy.Graph();
-	var nodeFont = "16px Verdana, sans-serif";
+	var nodeFont = "8px Verdana, sans-serif";
 	var edgeFont = "8px Verdana, sans-serif";
 	var stiffness = params.stiffness || 400.0;
 	var repulsion = params.repulsion || 400.0;
@@ -42,7 +42,7 @@ jQuery.fn.springy = function(params) {
 	var nodeImages = {};
 	var edgeLabelsUpright = true;
 	// Define a maximum distance for node interaction
-	var maxInteractionDistance = params.maxInteractionDistance || 50.0;
+	var maxInteractionDistance = params.maxInteractionDistance || 10.0;
 	
 	// Track canvas panning state
 	var canvasDragging = false;
@@ -135,7 +135,7 @@ jQuery.fn.springy = function(params) {
 			
 			if (selected.node !== null) {
 				dragged.point.m = 10.0;
-				//IDK WHY REMOVING THIS MAKES NODES NOT STICK
+				//IDK WHY DECREASING THIS MAKES NODES NOT STICK
 				if (nodeSelected) {
 					nodeSelected(selected.node);
 				}
@@ -248,7 +248,7 @@ jQuery.fn.springy = function(params) {
 	};
 
 	var getTextHeight = function(node) {
-		return 16;
+		return 8;
 		// In a more modular world, this would actually read the font size, but I think leaving it a constant is sufficient for now.
 		// If you change the font size, I'd adjust this too.
 	};
@@ -428,7 +428,7 @@ jQuery.fn.springy = function(params) {
 
 			var contentWidth = node.getWidth();
 			var contentHeight = node.getHeight();
-			var boxWidth = 100 + paddingX;
+			var boxWidth = 50 + paddingX;
 			var boxHeight = 100 + paddingY;
 			//BRADLEY CHANGE
 
