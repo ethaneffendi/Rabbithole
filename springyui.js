@@ -438,8 +438,8 @@ jQuery.fn.springy = function(params) {
 			// fill background
 			if (selected !== null && selected.node !== null && selected.node.id === node.id) {
 				ctx.fillStyle = "#5959FB"; // cornflower blue
-			} else if (nearest !== null && nearest.node !== null && nearest.node.id === node.id) {
-				ctx.fillStyle = "#5959FB";
+			//} else if (nearest !== null && nearest.node !== null && nearest.node.id === node.id) {
+			//	ctx.fillStyle = "#5959FB";
 			} else {
 				ctx.fillStyle = "#5A5A5A"; //gray
 			}
