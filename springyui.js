@@ -116,6 +116,7 @@ jQuery.fn.springy = function(params) {
 	// half-assed drag and drop
 	var selected = null;
 	var nearest = null;
+	var hovered = null;
 	var dragged = null;
 
 	jQuery(canvas).mousedown(function(e) {
@@ -132,7 +133,6 @@ jQuery.fn.springy = function(params) {
 		
 		if (distance <= maxInteractionDistance * scale) {
 			selected = dragged = nearest;
-			
 			if (selected.node !== null) {
 				dragged.point.m = 10.0;
 				//IDK WHY DECREASING THIS MAKES NODES NOT STICK
@@ -209,8 +209,10 @@ jQuery.fn.springy = function(params) {
 		var distance = calculateDistance(nearestScreenPos, mouseScreenPos);
 		
 		// If distance is greater than threshold, set nearest to null
-		if (distance > maxInteractionDistance * scale) {
-			nearest = null;
+		if (distance > maxInteractionDistance) {
+			hovered = nearest = null;
+		} else {
+			hovered = nearest;
 		}
 
 		if (dragged !== null && dragged.node !== null) {
@@ -438,8 +440,8 @@ jQuery.fn.springy = function(params) {
 			// fill background
 			if (selected !== null && selected.node !== null && selected.node.id === node.id) {
 				ctx.fillStyle = "#5959FB"; // cornflower blue
-			//} else if (nearest !== null && nearest.node !== null && nearest.node.id === node.id) {
-			//	ctx.fillStyle = "#5959FB";
+			} else if (hovered !== null && hovered.node !== null && hovered.node.id === node.id) {
+				ctx.fillStyle = "#a3a3ffff";
 			} else {
 				ctx.fillStyle = "#5A5A5A"; //gray
 			}
