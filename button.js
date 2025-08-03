@@ -11,3 +11,11 @@ document.addEventListener("DOMContentLoaded", function () {
     await chrome.storage.local.set({ id_to_parent: {}});
   });
 });
+document.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("suggest-url").addEventListener("click", async () => {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const url = tabs[0].url;
+        const suggestedUrl = await chrome.runtime.sendMessage({ type: "suggestURL", url: url });
+        chrome.tabs.create({ url: suggestedUrl });
+    });
+});

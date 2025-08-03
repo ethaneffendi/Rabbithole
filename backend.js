@@ -49,7 +49,7 @@ async function getInnerTextForTab(tabId) {
       // console.log("Page innerText:", innerText);
       return innerText; // Return the text
     } else {
-      console.log("Could not retrieve innerText. Result:", results);
+      // console.log("Could not retrieve innerText. Result:", results);
       return null;
     }
   } catch (error) {
@@ -89,11 +89,11 @@ class TabEventProcessor {
         await chrome.storage.local.set({ currentUrl: tab.url });
         //console.log('switch', await chrome.storage.local.get(['currentUrl']));
       } else if (eventType === "update") {
-        console.log("parent", JSON.stringify(parent));
+        // console.log("parent", JSON.stringify(parent));
         let realId = await getCurrentTabId();
 
         if (data.changeInfo.status === "complete" && data.id == realId) {
-          console.log("updating", data.url, data.id);
+          // console.log("updating", data.url, data.id);
           await chrome.storage.local.set({
             currentUrl: data.url,
             tabId: data.id,
@@ -115,7 +115,7 @@ class TabEventProcessor {
         try {
           var true_parent = (await chrome.storage.local.get(["id_to_parent"]))
             .id_to_parent[data.id];
-          console.log("true_parent", JSON.stringify(true_parent));
+          // console.log("true_parent", JSON.stringify(true_parent));
           if (true_parent == undefined) {
             true_parent = parent.currentUrl;
           }
@@ -164,14 +164,14 @@ const tabProcessor = new TabEventProcessor();
 
 // Set up listeners
 chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  console.log("STARTED ACTIVATION");
+  // console.log("STARTED ACTIVATION");
   await tabProcessor.enqueue("activation", activeInfo, "");
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   var current_tab_url = await chrome.storage.local.get(["currentUrl"]);
   if (changeInfo.status === "complete") {
-    console.log("STARTED UPDATE");
+    // console.log("STARTED UPDATE");
     await tabProcessor.enqueue(
       "update",
       {
@@ -206,7 +206,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 // });
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-    console.log("STARTED NAVIGATION");
+    // console.log("STARTED NAVIGATION");
   id_to_parent = {};
   try {
     id_to_parent = (await chrome.storage.local.get(["id_to_parent"]))
@@ -220,7 +220,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
     });
   });
   id_to_parent[details.tabId] = host_tab.url;
-  console.log(details.tabId, host_tab.url);
+  // console.log(details.tabId, host_tab.url);
   await chrome.storage.local.set({
     id_to_parent: id_to_parent,
   });
@@ -411,3 +411,22 @@ async function giveNameToURL(inputURL){
 
 
 
+
+async function suggestURL(siteURL){
+  //pretty self explanatory: take in a URL and spit back out a URL to a similar site
+  const prompt = `Return the URL of a website that is most similar to the following URL: ${siteURL}.
+  The response should be a valid URL only.`;
+  const rawResponse = await promptAI(prompt, {
+      temperature: 0.2,
+      maxOutputTokens: 30,
+      fallbackResponse: "google.com"
+  });
+  return rawResponse; 
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.type === "suggestURL") {
+        suggestURL(request.url).then(sendResponse);
+        return true;
+    }
+});

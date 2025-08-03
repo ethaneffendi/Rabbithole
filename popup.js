@@ -1,5 +1,9 @@
+// No import statement needed.
+
 document.addEventListener("DOMContentLoaded", async function () {
-  // 1. Get the graph data from storage
+  const res = await chrome.storage.sync.get(["nodeColor", "edgeColor"]);
+  // 1. Get the "source of truth" graph data directly from chrome.storage.
+  // This is the correct way to "load" the data.
   const result = await chrome.storage.local.get(["graphData"]);
   const data = result.graphData || [];
 
@@ -8,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  // 2. Transform the data for Vis.js
+  // 2. Transform the raw data for Vis.js (this part was already good)
   const nodes = new vis.DataSet();
   const edges = new vis.DataSet();
   const processedUrls = new Set();
@@ -38,10 +42,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-
   // 3. Setup Vis.js Network
   const container = document.getElementById("network");
-  const graphData = {
+  const graphDataForVis = {
     nodes: nodes,
     edges: edges,
   };
@@ -57,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       borderWidth: 2,
       color: {
         border: '#5959FB',
-        background: '#97C2FC',
+        background: res.nodeColor || '#97C2FC',
         highlight: {
           border: '#5959FB',
           background: '#D2E5FF'
@@ -67,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     edges: {
       width: 2,
       color: {
-        color: '#E0E0E2',
+        color: res.edgeColor || '#E0E0E2',
         highlight: '#5959FB'
       }
     },
@@ -88,9 +91,12 @@ document.addEventListener("DOMContentLoaded", async function () {
   };
 
   // 4. Initialize the Network
-  const network = new vis.Network(container, graphData, options);
-
-  // 5. Add event listener for double-clicking nodes
+  const network = new vis.Network(container, graphDataForVis, options);
+    
+  // NOTE: The network.on("afterDrawing", ...) block has been removed.
+  // The popup should NOT be saving data. Only the backend writes data.
+  
+  // 5. Add event listener for double-clicking nodes to open a new tab
   network.on("doubleClick", function (params) {
     if (params.nodes.length > 0) {
       const nodeId = params.nodes[0];
@@ -98,34 +104,8 @@ document.addEventListener("DOMContentLoaded", async function () {
       chrome.tabs.create({ url: nodeId });
     }
   });
+
+  // NOTE: The findEdgeNodes and suggestURL functions are not called here.
+  // They should be triggered by a user action (like a button click) if you
+  // want to use them in the UI.
 });
-
-async function findEdgeNodes(){
-  //get all nodes from Chrome storage
-  var data = (await chrome.storage.local.get(['graphData'])).graphData
-  //declare a Set to be filled with the 'self' property of each node
-  var nodes = new Set()
-  //fill the Set
-  for(let dict of data){
-      nodes.add(dict['self'])
-  }
-  //iterate through the Set; if the 'parent' property of a dict in Chrome data is in the Set, remove it from the Set (the removed URL is not an edge node)
-  for(let dict of data){
-      if(nodes.has(dict['parent'])){
-          nodes.delete(dict['parent'])
-      }
-  }
-  return nodes
-}
-
-async function suggestURL(siteURL){
-  //pretty self explanatory: take in a URL and spit back out a URL to a similar site
-  const prompt = `Return the URL of a website that is most similar to the following URL: ${siteURL}.
-  The response should be a valid URL only.`;
-  const rawResponse = await promptAI(prompt, {
-      temperature: 0.2,
-      maxOutputTokens: 30,
-      fallbackResponse: "google.com"
-  });
-  return rawResponse; 
-}
