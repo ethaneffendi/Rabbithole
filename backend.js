@@ -122,6 +122,14 @@ class TabEventProcessor {
         } catch {
           var true_parent = parent.currentUrl;
         }
+         // --- ADD THIS CHECK ---
+        if (text === null) {
+            console.error(`Skipping node creation for ${data.url} because page text could not be retrieved.`);
+            // Resolve the promise and stop processing this item
+            return resolve();
+        }
+        // --- END OF CHECK ---
+
         graphData.push({
           self: data.url,
           parent: true_parent,
@@ -220,7 +228,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
 async function promptAI(prompt, config = {}) {
   try {
-    const apiKey = "AIzaSyBqGJXPR5Gk2oZ9booojsuei8o3f_1Zmgc";
+    const apiKey = "YOUR_API_KEY"; // Replace with your actual API key - REMOVE BEFORE PUBLISHING
 
     // Default generation config
     const generationConfig = {
@@ -232,7 +240,7 @@ async function promptAI(prompt, config = {}) {
 
     // Create an AbortController to handle timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     try {
       // Use fetch API to call Gemini with timeout
@@ -365,23 +373,6 @@ async function giveNames() {
   });
 }
 
-async function createGraph() {
-  var data = (await chrome.storage.local.get(["graphData"])).graphData;
-  var graph = new Springy.Graph();
-  var nodes = {};
-  for (dict of data) {
-    var self = dict["self"];
-    var parent = dict["parent"];
-    var contents = dict["data"];
-    nodes[parent] = graph.newNode({ label: giveName(contents) });
-    nodes[self] = graph.newNode({ label: giveName(contents) });
-    graph.newEdge(nodes[parent], nodes[self], { color: lightGray });
-  }
-  chrome.storage.local.set({
-    graph: graph,
-  });
-  return graph;
-}
 
 async function giveNameToURL(inputURL){
   const prompt = `You are a topic extraction expert. Analyze the following text and extract 1-3 words
@@ -416,57 +407,7 @@ async function giveNameToURL(inputURL){
   return cleanedResponse || "unknown topic";
 }
 
-async function findEdgeNodes(){
-  //get all nodes from Chrome storage
-  var data = (await chrome.storage.local.get(['graphData'])).graphData
-  //declare a Set to be filled with the 'self' property of each node
-  var nodes = new Set()
-  //fill the Set
-  for(let dict of data){
-      nodes.add(dict['self'])
-  }
-  //iterate through the Set; if the 'parent' property of a dict in Chrome data is in the Set, remove it from the Set (the removed URL is not an edge node)
-  for(let dict of data){
-      if(nodes.has(dict['parent'])){
-          nodes.delete(dict['parent'])
-      }
-  }
-  return nodes
-}
 
-async function suggestURL(siteURL){
-  //pretty self explanatory: take in a URL and spit back out a URL to a similar site
-  const prompt = `Return the URL of a website that is most similar to the following URL: ${siteURL}.
-  The response should be a valid URL only.`;
-  const rawResponse = await promptAI(prompt, {
-      temperature: 0.2,
-      maxOutputTokens: 30,
-      fallbackResponse: "google.com"
-  });
-  return rawResponse; 
-}
-
-async function produceSuggestionNodes(){
-  //get all nodes from Chrome storage
-  var data = (await chrome.storage.local.get(['graphData'])).graphData
-  //get the Set of all edge nodes
-  var edgeNodes = await findEdgeNodes()
-  //declare a Map to be filled with siteURL:suggestedURL
-  var suggestions = new Map()
-  //iterate through the siteURLs in the Set 
-  for(let siteURL of edgeNodes){
-      //get the suggestion for each siteURL
-      var suggestionURL = await suggestURL(siteURL)
-      //add siteURL:suggestionURL to the Map
-      suggestions.set(siteURL, suggestionURL)
-  }
-  //for each siteURL:suggestionURL pair in the Map, push a new node to Chrome storage
-  for(const [siteURL, suggestionURL] of suggestions.entries()){
-      var newNode = {self: suggestionURL, parent: siteURL, name: await giveNameToURL(suggestionURL), isASuggestion: true}
-      data.push(newNode)
-      await chrome.storage.local.set({ graphData: data });
-  }
-}
 
 
 

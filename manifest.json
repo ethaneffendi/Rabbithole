@@ -8,7 +8,6 @@
   },
   "permissions": [
     "sidePanel",
-    "tabs",
     "alarms",
     "tabs",
     "scripting",
@@ -16,18 +15,18 @@
     "notifications",
     "storage"
   ],
-    "side_panel": {
+  "side_panel": {
     "default_path": "hello.html"
-    },
+  },
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "hello.html",
-    "default_icon": "/images/icon16.png"
+    "default_icon": "images/icon16.png"
   },
   "icons": {
-    "16": "/images/icon16.png",
-    "32": "/images/icon32.png",
-    "48": "/images/icon48.png",
-    "128": "/images/icon128.png"
+    "16": "images/icon16.png",
+    "32": "images/icon32.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
   }
 }
