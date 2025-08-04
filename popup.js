@@ -1,9 +1,11 @@
 // No import statement needed.
 
-document.addEventListener("DOMContentLoaded", async function () {
-  const res = await chrome.storage.sync.get(["nodeColor", "edgeColor"]);
-  // 1. Get the "source of truth" graph data directly from chrome.storage.
-  // This is the correct way to "load" the data.
+
+let network = null;
+
+// --- Function to render the graph ---
+async function renderGraph() {
+  const res = await chrome.storage.sync.get(["nodeColor", "edgeColor", "nodeSize", "nodeShape"]);
   const result = await chrome.storage.local.get(["graphData"]);
   const data = result.graphData || [];
 
@@ -12,26 +14,20 @@ document.addEventListener("DOMContentLoaded", async function () {
     return;
   }
 
-  // 2. Transform the raw data for Vis.js (this part was already good)
   const nodes = new vis.DataSet();
   const edges = new vis.DataSet();
   const processedUrls = new Set();
 
   data.forEach((item, index) => {
-    // Add the 'from' node (parent)
     if (item.parent && !processedUrls.has(item.parent)) {
-      nodes.add({ id: item.parent, label: item.parent.split('/')[2] || "Start", title: item.parent });
+      nodes.add({ id: item.parent, label: item.parent.split('/')[2] || "Start", title: item.paret });
       processedUrls.add(item.parent);
     }
-
-    // Add the 'to' node (self)
     if (item.self && !processedUrls.has(item.self)) {
       const label = item.name || item.self.split('/')[2] || "Unknown";
       nodes.add({ id: item.self, label: label, title: item.self });
       processedUrls.add(item.self);
     }
-    
-    // Add the edge
     if (item.parent && item.self) {
       edges.add({
         id: index,
@@ -42,7 +38,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
   });
 
-  // 3. Setup Vis.js Network
   const container = document.getElementById("network");
   const graphDataForVis = {
     nodes: nodes,
@@ -51,8 +46,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
   const options = {
     nodes: {
-      shape: "dot",
-      size: 16,
+      shape: res.nodeShape || "dot",
+      size: res.nodeSize || 16,
       font: {
         size: 14,
         color: "#333"
@@ -90,22 +85,22 @@ document.addEventListener("DOMContentLoaded", async function () {
     },
   };
 
-  // 4. Initialize the Network
   const network = new vis.Network(container, graphDataForVis, options);
-    
-  // NOTE: The network.on("afterDrawing", ...) block has been removed.
-  // The popup should NOT be saving data. Only the backend writes data.
-  
-  // 5. Add event listener for double-clicking nodes to open a new tab
+
   network.on("doubleClick", function (params) {
     if (params.nodes.length > 0) {
       const nodeId = params.nodes[0];
-      // The 'id' of our nodes is the URL
       chrome.tabs.create({ url: nodeId });
     }
   });
+}
 
-  // NOTE: The findEdgeNodes and suggestURL functions are not called here.
-  // They should be triggered by a user action (like a button click) if you
-  // want to use them in the UI.
+// --- Listen for storage changes and re-render ---
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.graphData) {
+    renderGraph();
+  }
 });
+
+// --- Initial render when the popup opens ---
+document.addEventListener("DOMContentLoaded", renderGraph);

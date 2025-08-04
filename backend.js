@@ -35,26 +35,18 @@ function isRestrictedUrl(url) {
   );
 }
 
-async function getInnerTextForTab(tabId) {
+async function getPageTitleForTab(tabId) {
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tabId },
-      func: () => document.body.innerText, // Function to execute in the target tab
+      func: () => document.title,
     });
-
-    // Results is an array of InjectionResult objects
-    // For a single frame injection, we expect one result
     if (results && results[0] && results[0].result) {
-      const innerText = results[0].result;
-      // console.log("Page innerText:", innerText);
-      return innerText; // Return the text
-    } else {
-      // console.log("Could not retrieve innerText. Result:", results);
-      return null;
+      return results[0].result;
     }
-  } catch (error) {
-    console.error(`Failed to execute script in tab ${tabId}: ${error}`);
-    // Handle errors, e.g., tab closed, no permission, page not loaded yet
+    return null;
+  } catch (e) {
+    // Catches errors when the script can't be injected, e.g., on chrome:// pages
     return null;
   }
 }
@@ -103,38 +95,29 @@ class TabEventProcessor {
         var graphData =
           (await chrome.storage.local.get(["graphData"])).graphData ?? [];
 
-        var text = null;
-        // Only try to get inner text if it's not a restricted URL
-        if (!isRestrictedUrl(data.url)) {
-          text = await getInnerTextForTab(data.id);
-        } else {
-          text =
-            "Restricted Url (Such as chrome://, chrome-extension://, etc.) Name it invalid.";
+        const title = await getPageTitleForTab(data.id);
+
+        // If we couldn't get a title, don't add the node
+        if (!title) {
+          return resolve();
         }
 
         try {
           var true_parent = (await chrome.storage.local.get(["id_to_parent"]))
             .id_to_parent[data.id];
-          // console.log("true_parent", JSON.stringify(true_parent));
           if (true_parent == undefined) {
             true_parent = parent.currentUrl;
           }
         } catch {
           var true_parent = parent.currentUrl;
         }
-         // --- ADD THIS CHECK ---
-        if (text === null) {
-            console.error(`Skipping node creation for ${data.url} because page text could not be retrieved.`);
-            // Resolve the promise and stop processing this item
-            return resolve();
-        }
-        // --- END OF CHECK ---
 
         graphData.push({
           self: data.url,
           parent: true_parent,
-          data: text,
+          name: title, // Use the title as the node name
         });
+
         console.log(
           "parent\n",
           true_parent,
@@ -151,9 +134,6 @@ class TabEventProcessor {
       reject(error);
     } finally {
       this.processing = false;
-      this.updating = false;
-      //   await chrome.storage.local.set({ currentUrl: data.url });
-      await giveNames();
       this.processNext();
     }
   }
@@ -206,29 +186,34 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 // });
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
-    // console.log("STARTED NAVIGATION");
-  id_to_parent = {};
-  try {
-    id_to_parent = (await chrome.storage.local.get(["id_to_parent"]))
-      .id_to_parent;
-  } catch (error) {
-    console.log("Initializing id_to_parent", error);
-  }
-  let host_tab = await new Promise((resolve) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      resolve(tabs[0]);
+  if (details.frameId === 0 && (details.transitionType === 'link' || details.transitionType === 'generated')) {
+    let id_to_parent = {};
+    try {
+      id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
+    } catch (error) {
+      console.log("Initializing id_to_parent", error);
+    }
+
+    let host_tab = await new Promise((resolve) => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        resolve(tabs[0]);
+      });
     });
-  });
-  id_to_parent[details.tabId] = host_tab.url;
-  // console.log(details.tabId, host_tab.url);
-  await chrome.storage.local.set({
-    id_to_parent: id_to_parent,
-  });
+
+    if (host_tab) {
+        id_to_parent[details.tabId] = host_tab.url;
+        await chrome.storage.local.set({ id_to_parent: id_to_parent });
+    }
+  }
 });
 
 async function promptAI(prompt, config = {}) {
   try {
-    const apiKey = "YOUR_API_KEY"; // Replace with your actual API key - REMOVE BEFORE PUBLISHING
+    const { apiKey } = await chrome.storage.sync.get("apiKey");
+    if (!apiKey) {
+      console.error("API key not found. Please set it in the extension options.");
+      return config.fallbackResponse ?? "API key not set";
+    }
 
     // Default generation config
     const generationConfig = {
@@ -243,9 +228,12 @@ async function promptAI(prompt, config = {}) {
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     try {
+      const { aiModel } = await chrome.storage.sync.get("aiModel");
+      const model = aiModel || 'gemini-2.0-flash';
+
       // Use fetch API to call Gemini with timeout
       const response = await fetch(
-        "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=" +
+        `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=` +
           apiKey,
         {
           method: "POST",
@@ -312,106 +300,6 @@ async function promptAI(prompt, config = {}) {
   }
 }
 
-async function giveName(contents) {
-  try {
-    // Improved prompt for better topic extraction
-    const betterPrompt = `
-            You are a topic extraction expert. Analyze the following text and extract 1-3 words 
-            that best represent the main topic or subject. 
-            
-            Guidelines:
-            - Use only lowercase words
-            - No punctuation
-            - Be specific and descriptive
-            - For webpages, focus on the main content topic, not navigation elements
-            - Prefer nouns or noun phrases
-            - If the content is unclear, use "unknown topic"
-            
-            Text to analyze:
-            ${contents.substring(0, 1000)}
-        `;
-
-    // Call the AI with our prompt
-    const rawResponse = await promptAI(betterPrompt, {
-      temperature: 0.2,
-      maxOutputTokens: 30,
-      fallbackResponse: "unknown topic",
-    });
-
-    // Clean up response to ensure it's 1-3 words, lowercase, no punctuation
-    const cleanedResponse = rawResponse
-      .toLowerCase()
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-      .split(" ")
-      .slice(0, 3)
-      .join(" ");
-
-    return cleanedResponse || "unknown topic";
-  } catch (error) {
-    console.error("Error in giveName:", error);
-    return "error";
-  }
-}
-
-async function giveNames() {
-  // console.log("Giving names")
-  var data = (await chrome.storage.local.get(["graphData"])).graphData;
-  for (dict of data) {
-    if (dict["data"] != "NAME_GIVEN") {
-      // console.log("DATA TYPE",typeof dict['data'])
-      dict["name"] = await giveName(dict["data"]);
-      // console.log("name", dict['name'])
-      dict["data"] = "NAME_GIVEN";
-    } else {
-      // console.log(dict['self'], "already named")
-    }
-  }
-  await chrome.storage.local.set({
-    graphData: data,
-  });
-}
-
-
-async function giveNameToURL(inputURL){
-  const prompt = `You are a topic extraction expert. Analyze the following text and extract 1-3 words
-          that best represent the main topic or subject.
-
-          Guidelines:
-          - Use only lowercase words
-          - No punctuation
-          - Be specific and descriptive
-          - For webpages, focus on the main content topic, not navigation elements
-          - Prefer nouns or noun phrases
-          - If the content is unclear, use "unknown topic"
-
-          Text to analyze:
-          ${inputURL}`
-  const rawResponse = await promptAI(prompt, {
-      temperature: 0.2,
-      maxOutputTokens: 30,
-      fallbackResponse: "unknown topic"
-  });
-  
-  // Clean up response to ensure it's 1-3 words, lowercase, no punctuation
-  const cleanedResponse = rawResponse
-      .toLowerCase()
-      .replace(/[^\w\s]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .split(' ')
-      .slice(0, 3)
-      .join(' ');
-
-  return cleanedResponse || "unknown topic";
-}
-
-
-
-
-
-
 async function suggestURL(siteURL){
   //pretty self explanatory: take in a URL and spit back out a URL to a similar site
   const prompt = `Return the URL of a website that is most similar to the following URL: ${siteURL}.
@@ -421,7 +309,7 @@ async function suggestURL(siteURL){
       maxOutputTokens: 30,
       fallbackResponse: "google.com"
   });
-  return rawResponse; 
+  return rawResponse;
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -430,3 +318,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { isRestrictedUrl };
+}

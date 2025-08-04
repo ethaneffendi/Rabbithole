@@ -6,13 +6,34 @@
 </head>
 <body>
   <h1>RabbitHole Options</h1>
-  <h2>Graph Appearance</h2>
+  <h2>AI Model Settings</h2>
   <form id="options-form">
+    <label for="ai-model">Select AI Model:</label>
+    <select id="ai-model" name="ai-model">
+      <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+      <option value="gpt-4" disabled>GPT-4 (Coming Soon)</option>
+    </select>
+    <br>
+    <label for="api-key">API Key:</label>
+    <input type="text" id="api-key" name="api-key" size="50">
+    <br>
+    <h2>Graph Appearance</h2>
     <label for="node-color">Node Color:</label>
     <input type="color" id="node-color" name="node-color" value="#97C2FC">
     <br>
     <label for="edge-color">Edge Color:</label>
     <input type="color" id="edge-color" name="edge-color" value="#E0E0E2">
+    <br>
+    <label for="node-size">Node Size:</label>
+    <input type="number" id="node-size" name="node-size" min="1" max="50" value="16">
+    <br>
+    <label for="node-shape">Node Shape:</label>
+    <select id="node-shape" name="node-shape">
+      <option value="dot">Dot</option>
+      <option value="square">Square</option>
+      <option value="triangle">Triangle</option>
+      <option value="star">Star</option>
+    </select>
     <br>
     <input type="submit" value="Save">
   </form>

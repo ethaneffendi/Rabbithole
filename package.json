@@ -2,5 +2,11 @@
   "dependencies": {
     "jquery": "^3.7.1",
     "vis-network": "^9.1.9"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "scripts": {
+    "test": "jest --config jest.config.js"
   }
 }
