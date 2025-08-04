@@ -35,7 +35,8 @@ function isRestrictedUrl(url) {
   );
 }
 
-async function getPageTitleForTab(tabId) {
+async function getPageTitleForTab(tabId, url) {
+  // First try script injection (works for same-origin pages)
   try {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tabId },
@@ -44,11 +45,54 @@ async function getPageTitleForTab(tabId) {
     if (results && results[0] && results[0].result) {
       return results[0].result;
     }
-    return null;
   } catch (e) {
-    // Catches errors when the script can't be injected, e.g., on chrome:// pages
-    return null;
+    console.log('Script injection failed, falling back to fetch:', e);
   }
+
+  // Fallback to fetch/XHR for cross-origin pages
+  if (url && !isRestrictedUrl(url)) {
+    try {
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'text/html',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('text/html')) {
+        throw new Error('Non-HTML content received');
+      }
+
+      const html = await response.text();
+      const titleMatch = html.match(/<title\b[^>]*>(.*?)<\/title>/i);
+      if (titleMatch && titleMatch[1]) {
+        return titleMatch[1].trim();
+      }
+      
+      // Fallback to URL if no title found
+      try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.replace('www.', '');
+      } catch {
+        return url;
+      }
+    } catch (e) {
+      console.log('Fetch fallback failed:', e);
+      try {
+        const urlObj = new URL(url);
+        return urlObj.hostname.replace('www.', '');
+      } catch {
+        return url;
+      }
+    }
+  }
+  
+  return null;
 }
 
 class TabEventProcessor {
@@ -95,49 +139,49 @@ class TabEventProcessor {
         var graphData =
           (await chrome.storage.local.get(["graphData"])).graphData ?? [];
 
-        const title = await getPageTitleForTab(data.id);
+let title = await getPageTitleForTab(data.id, data.url);
+if (!title) {
+  title = data.url; // Use URL as fallback if no title
+}
 
-        // If we couldn't get a title, don't add the node
-        if (!title) {
-          return resolve();
-        }
+          let stored_id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
+          var true_parent = stored_id_to_parent[data.id];
 
-        try {
-          var true_parent = (await chrome.storage.local.get(["id_to_parent"]))
-            .id_to_parent[data.id];
-          if (true_parent == undefined) {
+          if (true_parent) {
+            // If a specific parent was set by onBeforeNavigate (link click), use it and then clear it
+            delete stored_id_to_parent[data.id];
+            await chrome.storage.local.set({ id_to_parent: stored_id_to_parent });
+          } else {
+            // Otherwise, use the currentUrl from the previous active tab (tab switch, typed URL, etc.)
             true_parent = parent.currentUrl;
           }
-        } catch {
-          var true_parent = parent.currentUrl;
-        }
 
-        graphData.push({
-          self: data.url,
-          parent: true_parent,
-          name: title, // Use the title as the node name
-        });
+          graphData.push({
+            self: data.url,
+            parent: true_parent,
+            name: title, // Use the title as the node name
+          });
 
-        console.log(
-          "parent\n",
-          true_parent,
-          "\nself\n",
-          data.url,
-          data.id,
-          "\n"
-        );
-        await chrome.storage.local.set({ graphData: graphData });
+          console.log(
+            "parent\n",
+            true_parent,
+            "\nself\n",
+            data.url,
+            data.id,
+            "\n"
+          );
+          await chrome.storage.local.set({ graphData: graphData });
+        } // This closing brace is for the 'else if (eventType === "update")' block
+        resolve();
+      } catch (error) {
+        console.error(`Error handling ${eventType}:`, error);
+        reject(error); // Re-add reject for consistency, though it might not be used externally
+      } finally {
+        this.processing = false;
+        this.processNext();
       }
-      resolve();
-    } catch (error) {
-      console.error(`Error handling ${eventType}:`, error);
-      reject(error);
-    } finally {
-      this.processing = false;
-      this.processNext();
     }
   }
-}
 
 // Initialize processor
 const tabProcessor = new TabEventProcessor();
@@ -164,6 +208,13 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   }
 });
 
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  let stored_id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
+  if (stored_id_to_parent[tabId]) {
+    delete stored_id_to_parent[tabId];
+    await chrome.storage.local.set({ id_to_parent: stored_id_to_parent });
+  }
+});
 // chrome.tabs.onCreated.addListener(async (tab) => {
 //   id_to_parent = {};
 //   try {
