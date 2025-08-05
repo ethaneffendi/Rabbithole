@@ -1,4 +1,15 @@
 
+function showStatusMessage(message, duration = 2000) {
+  const statusElement = document.getElementById("status-message");
+  if (statusElement) {
+    statusElement.textContent = message;
+    statusElement.style.opacity = 1;
+    setTimeout(() => {
+      statusElement.style.opacity = 0;
+    }, duration);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("back").addEventListener("click", async function () {
     await chrome.storage.local.set({ welcomed: false });
@@ -7,19 +18,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("reset").addEventListener("click", async function () {
     await chrome.storage.local.set({ graphData: [], id_to_parent: {} });
+    showStatusMessage("Graph reset!");
   });
 
   document.getElementById("save-graph").addEventListener("click", async () => {
-    const result = await chrome.storage.local.get(["graphData"]);
-    const data = result.graphData || [];
-    await chrome.storage.local.set({ savedGraphData: data });
-    alert("Graph data saved!");
+    const { graphData = [] } = await chrome.storage.local.get("graphData");
+    await chrome.storage.local.set({ savedGraphData: graphData });
+    showStatusMessage("Graph saved!");
   });
 
   document.getElementById("load-graph").addEventListener("click", async () => {
-    const result = await chrome.storage.local.get(["savedGraphData"]);
-    const data = result.savedGraphData || [];
-    await chrome.storage.local.set({ graphData: data });
+    const { savedGraphData = [] } = await chrome.storage.local.get("savedGraphData");
+    await chrome.storage.local.set({ graphData: savedGraphData });
+    showStatusMessage("Graph loaded!");
   });
 
   document.getElementById("suggest-url").addEventListener("click", async () => {

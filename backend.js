@@ -20,7 +20,6 @@ async function getCurrentTabId() {
     );
   });
 } 
-// asfasdfo uasasodifuas sfadasdf asdfasdf asdfasd fasdfas dfas dfsad fs fasdfa sd  asdfas asd fasdf assdf asdfsadf dasfasdsdf asdsd fasdfasdf asdf ssdfaadfasd fasdfasdf asdf asdf asdf asdfas dfasdfas dfasdf sadf asdf sadfasd fasdfasd fasdfasd fasdfasdf asdfasdf asdfasdfas dfasdfdasf asd fasdf asdfasdfasdfasdfasdf as dfasdf asdfasdfasd fasdfasdf asdfasdfas dfasdfa sdf asadf asd awhat is this the wakatime iss not workinggggggfasd fasdf 
 // Function to check if a URL is restricted (chrome://, chrome-extension://, etc.)
 function isRestrictedUrl(url) {
   if (!url) return true;
@@ -131,60 +130,45 @@ class TabEventProcessor {
     this.processing = false;
   }
 
-  async enqueue(eventType, data, parent) {
-    return new Promise((resolve) => {
-      this.queue.push({ eventType, data, parent, resolve });
-      this.processNext();
-    });
+  enqueue(eventType, data, parent) {
+    this.queue.push({ eventType, data, parent });
+    this.processNext();
   }
 
   async processNext() {
     //console.log(this.processing, this.queue)
     if (this.processing || this.queue.length === 0) return;
 
-    let { eventType, data, parent, resolve } = this.queue.shift();
+    const { eventType, data, parent } = this.queue.shift();
     this.processing = true;
 
     try {
       if (eventType === "activation") {
-        // Fixed: Using activeInfo.tabId directly
-        let tab = await chrome.tabs.get(data.tabId);
-        if (tab.url == "") {
-          return resolve();
+        const tab = await chrome.tabs.get(data.tabId);
+        if (tab.url) {
+          await chrome.storage.local.set({ currentUrl: tab.url });
         }
-        await chrome.storage.local.set({ currentUrl: tab.url });
-        //console.log('switch', await chrome.storage.local.get(['currentUrl']));
       } else if (eventType === "update") {
-        // console.log("parent", JSON.stringify(parent));
-        let realId = await getCurrentTabId();
+        const realId = await getCurrentTabId();
 
-        if (data.changeInfo.status === "complete" && data.id == realId) {
-          // console.log("updating", data.url, data.id);
+        if (data.changeInfo.status === "complete" && data.id === realId) {
           await chrome.storage.local.set({
             currentUrl: data.url,
             tabId: data.id,
           });
-        }
 
-        var graphData =
-          (await chrome.storage.local.get(["graphData"])).graphData ?? [];
+          const { graphData = [] } = await chrome.storage.local.get("graphData");
+          const { id_to_parent = {} } = await chrome.storage.local.get("id_to_parent");
 
-let title = await getPageTitleForTab(data.id, data.url);
-if (!title) {
-  title = data.url; // Use URL as fallback if no title
-}
-
-          let stored_id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
-          var true_parent = stored_id_to_parent[data.id];
-          let connectionType = 'switch'; // Default to tab switch
+          let title = await getPageTitleForTab(data.id, data.url) || data.url;
+          let true_parent = id_to_parent[data.id];
+          let connectionType = 'switch';
 
           if (true_parent) {
-            // If a specific parent was set by onBeforeNavigate (link click), use it and then clear it
             connectionType = 'link';
-            delete stored_id_to_parent[data.id];
-            await chrome.storage.local.set({ id_to_parent: stored_id_to_parent });
+            delete id_to_parent[data.id];
+            await chrome.storage.local.set({ id_to_parent });
           } else {
-            // Otherwise, use the currentUrl from the previous active tab (tab switch, typed URL, etc.)
             true_parent = parent.currentUrl;
           }
 
@@ -196,29 +180,19 @@ if (!title) {
             graphData.push({
               self: data.url,
               parent: true_parent,
-              name: title, // Use the title as the node name
-              type: connectionType, // Add connection type
+              name: title,
+              type: connectionType,
             });
+            await chrome.storage.local.set({ graphData });
           }
-
-          console.log(
-            "parent\n",
-            true_parent,
-            "\nself\n",
-            data.url,
-            data.id,
-            "\n"
-          );
-          await chrome.storage.local.set({ graphData: graphData });
         }
-      resolve();
+      }
     } catch (error) {
       console.error(`Error handling ${eventType}:`, error);
-      // Removed reject as it's not a promise that needs to be rejected externally
     } finally {
       this.processing = false;
       this.processNext();
-      }
+    }
   }
 }
 
@@ -232,21 +206,15 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 });
 
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  var current_tab_url = await chrome.storage.local.get(["currentUrl"]);
   if (changeInfo.status === "complete") {
-    // console.log("STARTED UPDATE");
-    await tabProcessor.enqueue(
+    const { currentUrl } = await chrome.storage.local.get("currentUrl");
+    tabProcessor.enqueue(
       "update",
-      {
-        id: tabId,
-        changeInfo,
-        url: tab.url,
-      },
-      current_tab_url
+      { id: tabId, changeInfo, url: tab.url },
+      { currentUrl }
     );
   }
 });
- //testing to see if wakatime is working - gotta test it for some reason it wasnt working very well
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   let stored_id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
   if (stored_id_to_parent[tabId]) {
@@ -254,26 +222,6 @@ chrome.tabs.onRemoved.addListener(async (tabId) => {
     await chrome.storage.local.set({ id_to_parent: stored_id_to_parent });
   }
 });
-// chrome.tabs.onCreated.addListener(async (tab) => {
-//   id_to_parent = {};
-//   try {
-//     id_to_parent = (await chrome.storage.local.get(["id_to_parent"]))
-//       .id_to_parent;
-//   } catch (error) {
-//     console.log("Initializing id_to_parent", error);
-//   }
-//   let currentTab = await new Promise((resolve) => {
-//     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//       resolve(tabs[0]);
-//     });
-//   });
-//   id_to_parent[tab.id] = currentTab.url;
-//   console.log(tab.id, currentTab.url);
-//   console.log(JSON.stringify(id_to_parent));
-//   await chrome.storage.local.set({
-//     id_to_parent: id_to_parent,
-//   });
-// });
 
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId === 0 && (details.transitionType === 'link' || details.transitionType === 'generated')) {
