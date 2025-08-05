@@ -19,12 +19,13 @@ async function getCurrentTabId() {
       (tabs) => resolve(tabs[0]?.id)
     );
   });
-}
-
+} 
+// asfasdfo uasasodifuas sfadasdf asdfasdf asdfasd fasdfas dfas dfsad fs fasdfa sd  asdfas asd fasdf assdf asdfsadf dasfasdsdf asdsd fasdfasdf asdf ssdfaadfasd fasdfasdf asdf asdf asdf asdfas dfasdfas dfasdf sadf asdf sadfasd fasdfasd fasdfasd fasdfasdf asdfasdf asdfasdfas dfasdfdasf asd fasdf asdfasdfasdfasdfasdf as dfasdf asdfasdfasd fasdfasdf asdfasdfas dfasdfa sdf asadf asd awhat is this the wakatime iss not workinggggggfasd fasdf 
 // Function to check if a URL is restricted (chrome://, chrome-extension://, etc.)
 function isRestrictedUrl(url) {
   if (!url) return true;
   return (
+    url.startsWith("chrome://newtab/") ||
     url.startsWith("chrome://") ||
     url.startsWith("chrome-extension://") ||
     url.startsWith("devtools://") ||
@@ -49,7 +50,7 @@ async function getPageTitleForTab(tabId, url) {
     console.log('Script injection failed, falling back to fetch:', e);
   }
 
-  // Fallback to fetch/XHR for cross-origin pages
+  // Fallback to fetch for cross-origin pages
   if (url && !isRestrictedUrl(url)) {
     try {
       const response = await fetch(url, {
@@ -82,16 +83,45 @@ async function getPageTitleForTab(tabId, url) {
         return url;
       }
     } catch (e) {
-      console.log('Fetch fallback failed:', e);
+      console.log('Fetch fallback failed, trying XHR:', e);
+      // XHR Fallback
       try {
-        const urlObj = new URL(url);
-        return urlObj.hostname.replace('www.', '');
-      } catch {
-        return url;
+        const title = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("GET", url, true);
+          xhr.timeout = 10000; // 10 second timeout
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status >= 200 && xhr.status < 300) {
+                const titleMatch = /<title\b[^>]*>(.*?)<\/title>/i.exec(xhr.responseText);
+                if (titleMatch && titleMatch[1]) {
+                  resolve(titleMatch[1].trim());
+                } else {
+                  reject(new Error("XHR success, but no title found."));
+                }
+              } else {
+                reject(new Error(`XHR failed with status ${xhr.status}`));
+              }
+            }
+          };
+          xhr.ontimeout = () => reject(new Error("XHR request timed out."));
+          xhr.onerror = () => reject(new Error("XHR request error."));
+          xhr.send();
+        });
+        return title;
+      } catch (xhrError) {
+        console.log('XHR fallback failed:', xhrError.message);
+        try {
+          const urlObj = new URL(url);
+          return urlObj.hostname.replace('www.', '');
+        } catch {
+          return url; // Final fallback to the raw URL
+        }
       }
     }
   }
   
+  // If URL is restricted or all methods fail, return null
   return null;
 }
 
@@ -146,9 +176,11 @@ if (!title) {
 
           let stored_id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
           var true_parent = stored_id_to_parent[data.id];
+          let connectionType = 'switch'; // Default to tab switch
 
           if (true_parent) {
             // If a specific parent was set by onBeforeNavigate (link click), use it and then clear it
+            connectionType = 'link';
             delete stored_id_to_parent[data.id];
             await chrome.storage.local.set({ id_to_parent: stored_id_to_parent });
           } else {
@@ -156,11 +188,18 @@ if (!title) {
             true_parent = parent.currentUrl;
           }
 
-          graphData.push({
-            self: data.url,
-            parent: true_parent,
-            name: title, // Use the title as the node name
-          });
+          const isGoingBack = graphData.some(
+            item => item.parent === data.url && item.self === true_parent
+          );
+
+          if (true_parent && data.url && true_parent !== data.url && !isGoingBack) {
+            graphData.push({
+              self: data.url,
+              parent: true_parent,
+              name: title, // Use the title as the node name
+              type: connectionType, // Add connection type
+            });
+          }
 
           console.log(
             "parent\n",
@@ -171,17 +210,17 @@ if (!title) {
             "\n"
           );
           await chrome.storage.local.set({ graphData: graphData });
-        } // This closing brace is for the 'else if (eventType === "update")' block
-        resolve();
-      } catch (error) {
-        console.error(`Error handling ${eventType}:`, error);
-        reject(error); // Re-add reject for consistency, though it might not be used externally
-      } finally {
-        this.processing = false;
-        this.processNext();
+        }
+      resolve();
+    } catch (error) {
+      console.error(`Error handling ${eventType}:`, error);
+      // Removed reject as it's not a promise that needs to be rejected externally
+    } finally {
+      this.processing = false;
+      this.processNext();
       }
-    }
   }
+}
 
 // Initialize processor
 const tabProcessor = new TabEventProcessor();
@@ -207,7 +246,7 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
     );
   }
 });
-
+ //testing to see if wakatime is working - gotta test it for some reason it wasnt working very well
 chrome.tabs.onRemoved.addListener(async (tabId) => {
   let stored_id_to_parent = (await chrome.storage.local.get(["id_to_parent"])).id_to_parent || {};
   if (stored_id_to_parent[tabId]) {
@@ -260,10 +299,19 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
 async function promptAI(prompt, config = {}) {
   try {
-    const { apiKey } = await chrome.storage.sync.get("apiKey");
+    const { aiModel, googleApiKey, openaiApiKey } = await chrome.storage.sync.get(["aiModel", "googleApiKey", "openaiApiKey"]);
+    let apiKey;
+    let model = aiModel || 'gemini-2.0-flash';
+
+    if (model.startsWith('gemini')) {
+      apiKey = googleApiKey;
+    } else if (model.startsWith('gpt')) {
+      apiKey = openaiApiKey;
+    }
+
     if (!apiKey) {
-      console.error("API key not found. Please set it in the extension options.");
-      return config.fallbackResponse ?? "API key not set";
+      console.error(`API key for ${model} not found. Please set it in the extension options.`);
+      return config.fallbackResponse ?? "API key not set for selected model";
     }
 
     // Default generation config
@@ -279,30 +327,48 @@ async function promptAI(prompt, config = {}) {
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     try {
-      const { aiModel } = await chrome.storage.sync.get("aiModel");
-      const model = aiModel || 'gemini-2.0-flash';
+      let apiUrl;
+      if (model.startsWith('gemini')) {
+        apiUrl = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=` + apiKey;
+      } else if (model.startsWith('gpt')) {
+        apiUrl = `https://api.openai.com/v1/chat/completions`; // OpenAI endpoint
+      } else {
+        throw new Error("Unsupported AI model selected.");
+      }
 
-      // Use fetch API to call Gemini with timeout
+      // Use fetch API to call the selected AI model with timeout
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=` +
-          apiKey,
+        apiUrl,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            ...(model.startsWith('gpt') && { 'Authorization': `Bearer ${apiKey}` }) // Add Authorization header for OpenAI
           },
-          body: JSON.stringify({
-            contents: [
-              {
-                parts: [
-                  {
-                    text: prompt,
-                  },
-                ],
-              },
-            ],
-            generationConfig: generationConfig,
-          }),
+          body: JSON.stringify(
+            model.startsWith('gemini') ?
+            {
+              contents: [
+                {
+                  parts: [
+                    {
+                      text: prompt,
+                    },
+                  ],
+                },
+              ],
+              generationConfig: generationConfig,
+            } :
+            { // OpenAI format
+              model: model,
+              messages: [{ role: "user", content: prompt }],
+              temperature: generationConfig.temperature,
+              max_tokens: generationConfig.maxOutputTokens,
+              top_p: generationConfig.topP,
+              frequency_penalty: 0,
+              presence_penalty: 0,
+            }
+          ),
           signal: controller.signal,
         }
       );
@@ -318,22 +384,33 @@ async function promptAI(prompt, config = {}) {
       const data = await response.json();
 
       // Check if we got a valid response
-      if (
-        data.candidates &&
-        data.candidates[0] &&
-        data.candidates[0].content &&
-        data.candidates[0].content.parts
-      ) {
-        return data.candidates[0].content.parts[0].text.trim();
+      if (model.startsWith('gemini')) {
+        if (
+          data.candidates &&
+          data.candidates[0] &&
+          data.candidates[0].content &&
+          data.candidates[0].content.parts
+        ) {
+          return data.candidates[0].content.parts[0].text.trim();
+        }
+      } else if (model.startsWith('gpt')) {
+        if (
+          data.choices &&
+          data.choices[0] &&
+          data.choices[0].message &&
+          data.choices[0].message.content
+        ) {
+          return data.choices[0].message.content.trim();
+        }
       }
 
       // Handle error cases
       if (data.error) {
         console.error("AI API error:", data.error);
-        return config.fallbackResponse ?? "error";
+        return config.fallbackResponse ?? "API error: " + data.error.message;
       }
 
-      return config.fallbackResponse ?? "no response";
+      return config.fallbackResponse ?? "no response from AI";
     } catch (fetchError) {
       clearTimeout(timeoutId);
 

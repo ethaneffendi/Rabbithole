@@ -4,7 +4,9 @@
 function saveOptions(e) {
   e.preventDefault();
   chrome.storage.sync.set({
-    apiKey: document.querySelector("#api-key").value,
+    aiModel: document.querySelector("#ai-model").value,
+    googleApiKey: document.querySelector("#google-api-key").value,
+    openaiApiKey: document.querySelector("#openai-api-key").value,
     nodeColor: document.querySelector("#node-color").value,
     edgeColor: document.querySelector("#edge-color").value,
     nodeSize: document.querySelector("#node-size").value,
@@ -14,9 +16,10 @@ function saveOptions(e) {
 
 // Function to restore the options from chrome.storage
 function restoreOptions() {
-  chrome.storage.sync.get(["aiModel", "apiKey", "nodeColor", "edgeColor", "nodeSize", "nodeShape"], (res) => {
+  chrome.storage.sync.get(["aiModel", "googleApiKey", "openaiApiKey", "nodeColor", "edgeColor", "nodeSize", "nodeShape"], (res) => {
     document.querySelector("#ai-model").value = res.aiModel || 'gemini-2.0-flash';
-    document.querySelector("#api-key").value = res.apiKey || '';
+    document.querySelector("#google-api-key").value = res.googleApiKey || '';
+    document.querySelector("#openai-api-key").value = res.openaiApiKey || '';
     document.querySelector("#node-color").value = res.nodeColor || '#97C2FC';
     document.querySelector("#edge-color").value = res.edgeColor || '#E0E0E2';
     document.querySelector("#node-size").value = res.nodeSize || 16;

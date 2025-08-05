@@ -12,16 +12,14 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("save-graph").addEventListener("click", async () => {
     const result = await chrome.storage.local.get(["graphData"]);
     const data = result.graphData || [];
-    // The data is already being saved in the background script.
-    // This button provides a manual confirmation for the user.
+    await chrome.storage.local.set({ savedGraphData: data });
     alert("Graph data saved!");
   });
 
-  document.getElementById("load-graph").addEventListener("click", () => {
-    // The renderGraph function is defined in popup.js
-    if (typeof renderGraph === "function") {
-      renderGraph();
-    }
+  document.getElementById("load-graph").addEventListener("click", async () => {
+    const result = await chrome.storage.local.get(["savedGraphData"]);
+    const data = result.savedGraphData || [];
+    await chrome.storage.local.set({ graphData: data });
   });
 
   document.getElementById("suggest-url").addEventListener("click", async () => {
