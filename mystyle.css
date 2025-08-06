@@ -76,3 +76,27 @@
     width: 99%;
     padding: 20px auto;
   }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Full viewport height */
+}
+
+.header, body {
+  min-width: 420px; /* Ensures header and buttons fit without scroll */
+}
+
+#network {
+  flex: 1 1 auto; /* Take up all remaining space */
+  min-height: 0;  /* Prevent overflow issues */
+  width: 100%;
+  border-bottom: 1px solid #e0e0e2;
+}

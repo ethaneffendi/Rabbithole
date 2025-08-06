@@ -1,3 +1,5 @@
+import { GEMINI_API_KEY } from "./api_key.js";
+
 chrome.runtime.onInstalled.addListener(() => {
   chrome.sidePanel.setOptions({
     path: "hello.html",
@@ -228,7 +230,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
 async function promptAI(prompt, config = {}) {
   try {
-    const apiKey = "YOUR_API_KEY"; // Replace with your actual API key - REMOVE BEFORE PUBLISHING
+    const apiKey = GEMINI_API_KEY;
 
     // Default generation config
     const generationConfig = {
@@ -326,7 +328,8 @@ async function giveName(contents) {
             - For webpages, focus on the main content topic, not navigation elements
             - Prefer nouns or noun phrases
             - If the content is unclear, use "unknown topic"
-            
+            - If the website is well known, use the name of the website
+
             Text to analyze:
             ${contents.substring(0, 1000)}
         `;

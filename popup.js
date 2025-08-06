@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     edges: {
       width: 2,
       color: {
-        color: res.edgeColor || '#E0E0E2',
+        color: res.edgeColor || '#919191',
         highlight: '#5959FB'
       }
     },
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     },
     interaction: {
       tooltipDelay: 200,
-      hideEdgesOnDrag: true,
+      hideEdgesOnDrag: false,
     },
   };
 
