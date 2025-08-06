@@ -21,11 +21,35 @@
         width: 100%;
         height: 350px;
         border-bottom: 1px solid #e0e0e2;
+        flex: 1;
+        min-height: 200px; /* Minimum height when prompt is shown */
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden; /* Prevent scrollbars */
+      }
+      #api-key-prompt {
+        flex-shrink: 0; /* Don't shrink the prompt */
+      }
+      .header {
+        flex-shrink: 0; /* Don't shrink the header */
+      }
+      #divider {
+        flex-shrink: 0; /* Don't shrink the divider */
       }
     </style>
   </head>
 
   <body>
+    <div id="api-key-prompt" style="display: none; padding: 15px; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
+      <h3 style="margin: 0 0 10px 0; color: #dc3545;">API Key Required</h3>
+      <p style="margin: 0 0 10px 0; font-size: 14px;">Please enter your Gemini API key to enable AI features:</p>
+      <input type="password" id="api-key-input" placeholder="Enter your Gemini API key" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+      <button id="save-api-key" class="button buttonSmall" style="background-color: #28a745; color: white;">Save API Key</button>
+    </div>
+
     <div class="header">
       <h2>Rabbithole</h2>
       <div class="button-container">

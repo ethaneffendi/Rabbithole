@@ -1,6 +1,39 @@
 // No import statement needed.
 
 document.addEventListener("DOMContentLoaded", async function () {
+  // Check for API key first
+  const apiKeyResult = await chrome.storage.local.get(['geminiApiKey']);
+  const apiKeyPrompt = document.getElementById("api-key-prompt");
+  const apiKeyInput = document.getElementById("api-key-input");
+  const saveApiKeyBtn = document.getElementById("save-api-key");
+
+  if (!apiKeyResult.geminiApiKey) {
+    // Show API key prompt
+    apiKeyPrompt.style.display = "block";
+    
+    // Handle saving API key
+    saveApiKeyBtn.addEventListener("click", async () => {
+      const apiKey = apiKeyInput.value.trim();
+      if (apiKey) {
+        await chrome.storage.local.set({ geminiApiKey: apiKey });
+        apiKeyPrompt.style.display = "none";
+        // Reload the page to continue with normal functionality
+        window.location.reload();
+      } else {
+        alert("Please enter a valid API key");
+      }
+    });
+
+    // Allow Enter key to save
+    apiKeyInput.addEventListener("keypress", async (e) => {
+      if (e.key === "Enter") {
+        saveApiKeyBtn.click();
+      }
+    });
+    
+    return; // Don't continue with graph loading until API key is set
+  }
+
   const res = await chrome.storage.sync.get(["nodeColor", "edgeColor"]);
   // 1. Get the "source of truth" graph data directly from chrome.storage.
   // This is the correct way to "load" the data.
