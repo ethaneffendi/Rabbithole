@@ -34,111 +34,270 @@ document.addEventListener("DOMContentLoaded", async function () {
     return; // Don't continue with graph loading until API key is set
   }
 
-  const res = await chrome.storage.sync.get(["nodeColor", "edgeColor"]);
-  // 1. Get the "source of truth" graph data directly from chrome.storage.
-  // This is the correct way to "load" the data.
-  const result = await chrome.storage.local.get(["graphData"]);
-  const data = result.graphData || [];
+  // Global variables to maintain network state
+  let currentNetwork = null;
+  let currentNodes = null;
+  let currentEdges = null;
+  let savedPositions = {}; // Store saved positions
 
-  if (!data || data.length === 0) {
-    document.getElementById("network").innerText = "No browsing data yet. Start navigating to build your graph!";
-    return;
+  // Initialize the network
+  await initializeNetwork();
+
+  // Listen for changes to graphData and re-render
+  chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.graphData) {
+      console.log('Graph data changed, updating network');
+      updateNetwork();
+    }
+  });
+
+  async function initializeNetwork() {
+    const res = await chrome.storage.sync.get(["nodeColor", "edgeColor"]);
+    const result = await chrome.storage.local.get(["graphData"]);
+    const data = result.graphData || [];
+
+    if (!data || data.length === 0) {
+      document.getElementById("network").innerText = "No browsing data yet. Start navigating to build your graph!";
+      return;
+    }
+
+    // Clear the "no data" message
+    document.getElementById("network").innerText = "";
+
+    // Load saved positions
+    const positionsResult = await chrome.storage.local.get(['nodePositions']);
+    savedPositions = positionsResult.nodePositions || {};
+
+    // Create new datasets
+    currentNodes = new vis.DataSet();
+    currentEdges = new vis.DataSet();
+    
+    buildGraphData(data, res);
+    createNetwork(res);
   }
 
-  // 2. Transform the raw data for Vis.js (this part was already good)
-  const nodes = new vis.DataSet();
-  const edges = new vis.DataSet();
-  const processedUrls = new Set();
-
-  data.forEach((item, index) => {
-    // Add the 'from' node (parent)
-    if (item.parent && !processedUrls.has(item.parent)) {
-      nodes.add({ id: item.parent, label: item.parent.split('/')[2] || "Start", title: item.parent });
-      processedUrls.add(item.parent);
+  async function updateNetwork() {
+    if (!currentNetwork || !currentNodes || !currentEdges) {
+      // If network doesn't exist, initialize it
+      await initializeNetwork();
+      return;
     }
 
-    // Add the 'to' node (self)
-    if (item.self && !processedUrls.has(item.self)) {
-      const label = item.name || item.self.split('/')[2] || "Unknown";
-      nodes.add({ id: item.self, label: label, title: item.self });
-      processedUrls.add(item.self);
+    const res = await chrome.storage.sync.get(["nodeColor", "edgeColor"]);
+    const result = await chrome.storage.local.get(["graphData"]);
+    const data = result.graphData || [];
+
+    if (!data || data.length === 0) {
+      document.getElementById("network").innerText = "No browsing data yet. Start navigating to build your graph!";
+      if (currentNetwork) {
+        currentNetwork.destroy();
+        currentNetwork = null;
+      }
+      return;
+    }
+
+    // Get existing nodes and edges to preserve them
+    const existingNodes = new Set(currentNodes.getIds());
+    const existingEdges = new Set(currentEdges.getIds());
+    
+    // Build new graph data incrementally
+    const newNodes = [];
+    const newEdges = [];
+    buildGraphDataIncremental(data, res, existingNodes, existingEdges, newNodes, newEdges);
+    
+    // Add only new nodes
+    if (newNodes.length > 0) {
+      currentNodes.add(newNodes);
     }
     
-    // Add the edge
-    if (item.parent && item.self) {
-      edges.add({
-        id: index,
-        from: item.parent,
-        to: item.self,
-        arrows: 'to'
-      });
+    // Add only new edges
+    if (newEdges.length > 0) {
+      currentEdges.add(newEdges);
     }
-  });
+    
+    // Restore positions for nodes that have saved positions
+    const nodesToUpdate = [];
+    currentNodes.forEach((node) => {
+      if (savedPositions[node.id]) {
+        nodesToUpdate.push({
+          id: node.id,
+          x: savedPositions[node.id].x,
+          y: savedPositions[node.id].y,
+          ...node
+        });
+      }
+    });
+    
+    // Update nodes with preserved positions
+    if (nodesToUpdate.length > 0) {
+      currentNodes.update(nodesToUpdate);
+    }
+  }
 
-  // 3. Setup Vis.js Network
-  const container = document.getElementById("network");
-  const graphDataForVis = {
-    nodes: nodes,
-    edges: edges,
-  };
+  function buildGraphData(data, res) {
+    const processedUrls = new Set();
 
-  const options = {
-    nodes: {
-      shape: "dot",
-      size: 16,
-      font: {
-        size: 14,
-        color: "#333"
-      },
-      borderWidth: 2,
-      color: {
-        border: '#5959FB',
-        background: res.nodeColor || '#97C2FC',
-        highlight: {
-          border: '#5959FB',
-          background: '#D2E5FF'
+    data.forEach((item, index) => {
+      // Add the 'from' node (parent)
+      if (item.parent && !processedUrls.has(item.parent)) {
+        currentNodes.add({ 
+          id: item.parent, 
+          label: item.parent.split('/')[2] || "Start", 
+          title: item.parent 
+        });
+        processedUrls.add(item.parent);
+      }
+
+      // Add the 'to' node (self)
+      if (item.self && !processedUrls.has(item.self)) {
+        const label = item.name || item.self.split('/')[2] || "Unknown";
+        currentNodes.add({ 
+          id: item.self, 
+          label: label, 
+          title: item.self 
+        });
+        processedUrls.add(item.self);
+      }
+      
+      // Add the edge
+      if (item.parent && item.self) {
+        currentEdges.add({
+          id: index,
+          from: item.parent,
+          to: item.self,
+          arrows: 'to'
+        });
+      }
+    });
+  }
+
+  function buildGraphDataIncremental(data, res, existingNodes, existingEdges, newNodes, newEdges) {
+    const processedUrls = new Set();
+
+    data.forEach((item, index) => {
+      // Add the 'from' node (parent) only if it doesn't exist
+      if (item.parent && !processedUrls.has(item.parent)) {
+        if (!existingNodes.has(item.parent)) {
+          newNodes.push({ 
+            id: item.parent, 
+            label: item.parent.split('/')[2] || "Start", 
+            title: item.parent 
+          });
         }
+        processedUrls.add(item.parent);
       }
-    },
-    edges: {
-      width: 2,
-      color: {
-        color: res.edgeColor || '#919191',
-        highlight: '#5959FB'
+
+      // Add the 'to' node (self) only if it doesn't exist
+      if (item.self && !processedUrls.has(item.self)) {
+        if (!existingNodes.has(item.self)) {
+          const label = item.name || item.self.split('/')[2] || "Unknown";
+          newNodes.push({ 
+            id: item.self, 
+            label: label, 
+            title: item.self 
+          });
+        }
+        processedUrls.add(item.self);
       }
-    },
-    physics: {
-      enabled: true,
-      solver: "forceAtlas2Based",
-      forceAtlas2Based: {
-        gravitationalConstant: -35,
-        centralGravity: 0.01,
-        springLength: 150,
-        springConstant: 0.09,
+      
+      // Add the edge only if it doesn't exist
+      if (item.parent && item.self && !existingEdges.has(index)) {
+        newEdges.push({
+          id: index,
+          from: item.parent,
+          to: item.self,
+          arrows: 'to'
+        });
+      }
+    });
+  }
+
+  function createNetwork(res) {
+    const container = document.getElementById("network");
+    const graphDataForVis = {
+      nodes: currentNodes,
+      edges: currentEdges,
+    };
+
+    const options = {
+      nodes: {
+        shape: "dot",
+        size: 16,
+        font: {
+          size: 14,
+          color: "#333"
+        },
+        borderWidth: 2,
+        color: {
+          border: '#5959FB',
+          background: res.nodeColor || '#97C2FC',
+          highlight: {
+            border: '#5959FB',
+            background: '#D2E5FF'
+          }
+        }
       },
-    },
-    interaction: {
-      tooltipDelay: 200,
-      hideEdgesOnDrag: false,
-    },
-  };
+      edges: {
+        width: 2,
+        color: {
+          color: res.edgeColor || '#919191',
+          highlight: '#5959FB'
+        }
+      },
+      physics: {
+        enabled: true,
+        solver: "forceAtlas2Based",
+        forceAtlas2Based: {
+          gravitationalConstant: -35,
+          centralGravity: 0.01,
+          springLength: 150,
+          springConstant: 0.09,
+        },
+      },
+      interaction: {
+        tooltipDelay: 200,
+        hideEdgesOnDrag: false,
+      },
+    };
 
-  // 4. Initialize the Network
-  const network = new vis.Network(container, graphDataForVis, options);
-    
-  // NOTE: The network.on("afterDrawing", ...) block has been removed.
-  // The popup should NOT be saving data. Only the backend writes data.
-  
-  // 5. Add event listener for double-clicking nodes to open a new tab
-  network.on("doubleClick", function (params) {
-    if (params.nodes.length > 0) {
-      const nodeId = params.nodes[0];
-      // The 'id' of our nodes is the URL
-      chrome.tabs.create({ url: nodeId });
+    // Create or recreate the network
+    if (currentNetwork) {
+      currentNetwork.destroy();
     }
-  });
+    
+    currentNetwork = new vis.Network(container, graphDataForVis, options);
+      
+    // Add event listener for double-clicking nodes to open a new tab
+    currentNetwork.on("doubleClick", function (params) {
+      if (params.nodes.length > 0) {
+        const nodeId = params.nodes[0];
+        chrome.tabs.create({ url: nodeId });
+      }
+    });
 
-  // NOTE: The findEdgeNodes and suggestURL functions are not called here.
-  // They should be triggered by a user action (like a button click) if you
-  // want to use them in the UI.
+    // Save node positions after physics stabilization
+    currentNetwork.on("stabilizationIterationsDone", function() {
+      console.log("Physics simulation completed, saving positions");
+      const currentPositions = currentNetwork.getPositions();
+      savedPositions = { ...savedPositions, ...currentPositions };
+      chrome.storage.local.set({ nodePositions: savedPositions });
+    });
+
+    // Also save positions during stabilization (for incremental updates)
+    currentNetwork.on("stabilizationProgress", function(params) {
+      if (params.iterations % 10 === 0) { // Save every 10 iterations to avoid too many saves
+        const currentPositions = currentNetwork.getPositions();
+        savedPositions = { ...savedPositions, ...currentPositions };
+      }
+    });
+
+    // Save positions when user manually moves nodes
+    currentNetwork.on("dragEnd", function(params) {
+      if (params.nodes.length > 0) {
+        const currentPositions = currentNetwork.getPositions(params.nodes);
+        savedPositions = { ...savedPositions, ...currentPositions };
+        chrome.storage.local.set({ nodePositions: savedPositions });
+      }
+    });
+  }
 });
