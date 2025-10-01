@@ -1,3 +1,17 @@
+<<<<<<< Updated upstream
+=======
+
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.sidePanel.setOptions({
+    path: "hello.html",
+    enabled: true
+  });
+  chrome.sidePanel.setPanelBehavior({ 
+    openPanelOnActionClick: true 
+  });
+});
+
+>>>>>>> Stashed changes
 async function getCurrentTabId() {
   return new Promise((resolve) => {
     chrome.tabs.query(
@@ -111,10 +125,28 @@ class TabEventProcessor {
         } catch {
           var true_parent = parent.currentUrl;
         }
+        // Get tab title for self and parent
+        let selfTitle = null;
+        let parentTitle = null;
+        try {
+          const tabInfo = await chrome.tabs.get(data.id);
+          selfTitle = tabInfo.title;
+        } catch {}
+        try {
+          if (true_parent) {
+            // Try to find a tab with the parent URL to get its title
+            const tabs = await chrome.tabs.query({ url: true_parent });
+            if (tabs && tabs.length > 0) {
+              parentTitle = tabs[0].title;
+            }
+          }
+        } catch {}
         graphData.push({
           self: data.url,
           parent: true_parent,
           data: text,
+          title: selfTitle,
+          parentTitle: parentTitle
         });
         console.log(
           "parent\n",
@@ -134,7 +166,6 @@ class TabEventProcessor {
       this.processing = false;
       this.updating = false;
       //   await chrome.storage.local.set({ currentUrl: data.url });
-      await giveNames();
       this.processNext();
     }
   }
@@ -207,6 +238,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   });
 });
 
+<<<<<<< Updated upstream
 async function promptAI(prompt, config = {}) {
   try {
     const apiKey = "AIzaSyBqGJXPR5Gk2oZ9booojsuei8o3f_1Zmgc";
@@ -459,3 +491,5 @@ async function produceSuggestionNodes(){
 
 
 
+=======
+>>>>>>> Stashed changes

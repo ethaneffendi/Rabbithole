@@ -1,5 +1,6 @@
 {
   "name": "Rabbithole Research",
+  "default_locale": "en",
   "description": "All the research, without the mess.",
   "version": "1.0",
   "manifest_version": 3,
@@ -15,10 +16,20 @@
     "notifications",
     "storage"
   ],
+<<<<<<< Updated upstream
   "host_permissions": ["<all_urls>"],
   "action": {
     "default_popup": "hello.html",
     "default_icon": "/images/icon16.png"
+=======
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": "images/icon16.png"
+>>>>>>> Stashed changes
   },
   "icons": {
     "16": "/images/icon16.png",

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Rabbithole Settings</title>
+  <link rel="stylesheet" href="mystyle.css" />
+  <style>
+    .settings-container {
+      max-width: 350px;
+      margin: 30px auto;
+      padding: 24px 18px;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .settings-container label {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .settings-row input[type="color"] {
+      border: none;
+      width: 32px;
+      height: 32px;
+      background: none;
+      padding: 0;
+    }
+    .settings-row select, .settings-row input[type="checkbox"] {
+      margin-left: 12px;
+    }
+    .settings-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <h2>Graph Settings</h2>
+    <div class="settings-row">
+      <label for="labelMode">Node Label:</label>
+      <select id="labelMode">
+        <option value="title">Tab Title</option>
+        <option value="link">URL/Link</option>
+      </select>
+    </div>
+    <div class="settings-row">
+      <label for="arrowColor">Arrow Color:</label>
+      <input type="color" id="arrowColor" value="#888888" />
+    </div>
+    <div class="settings-row">
+      <label for="showFavicon">Show Favicons:</label>
+      <input type="checkbox" id="showFavicon" checked />
+    </div>
+    <div class="settings-row">
+      <label for="arrowSmooth">Smooth Arrows:</label>
+      <input type="checkbox" id="arrowSmooth" checked />
+    </div>
+    <div class="settings-row">
+      <label for="arrowWidth">Arrow Width:</label>
+      <input type="number" id="arrowWidth" min="1" max="10" value="2" style="width:50px;" />
+    </div>
+    <div class="settings-actions">
+      <button class="button buttonSmall" id="saveSettings">Save</button>
+      <button class="button buttonSmall" id="resetSettings">Reset</button>
+    </div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>

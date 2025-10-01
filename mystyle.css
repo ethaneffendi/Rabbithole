@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 /* devanagari */
 @font-face {
     font-family: 'Mukta';
@@ -5,8 +6,71 @@
     font-weight: 700;
     src: url(https://fonts.gstatic.com/s/mukta/v16/iJWHBXyXfDDVXbF6iGmc8WD07oB-98o.woff2) format('woff2');
     unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+20F0, U+25CC, U+A830-A839, U+A8E0-A8FF, U+11B00-11B09;
+=======
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 4px 8px 0 8px;
+  width: 340px;
+  min-width: 0;
+>>>>>>> Stashed changes
 }
+.header-title {
+  font-weight: bold;
+  font-size: 18px;
+  text-align: left;
+}
+.header-spacer {
+  flex: 1 1 auto;
+}
+.button-container {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+#divider {
+  height: 6px;
+  background: #e0e0e2;
+  margin: 4px 0 6px 0;
+  width: 100%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+/* Header and button alignment for compact UI */
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 0 8px;
+  width: 340px;
+  min-width: 0;
+}
+.header-title {
+  flex: 0 0 auto;
+  font-weight: bold;
+  font-size: 18px;
+  text-align: left;
+}
+.button-container {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+  flex: 1 1 auto;
+}
+#divider {
+  height: 2px;
+  background: #e0e0e2;
+  margin: 4px 0 6px 0;
+  width: 100%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+/* Removed incomplete @font-face rules to resolve lint errors */
 
+<<<<<<< Updated upstream
 /* latin-ext */
 @font-face {
     font-family: 'Mukta';
@@ -39,20 +103,44 @@
     transition-duration: 0.4s;
     cursor: pointer;
     font-family: 'Mukta', sans-serif;
+=======
+
+.button {
+  border-radius: 12px;
+  background-color: #3498db;
+  border: none;
+  color: white;
+  padding: 6px 14px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 13px;
+  margin: 2px 1px;
+  transition-duration: 0.3s;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+  .button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.2);
+>>>>>>> Stashed changes
   }
 
 .buttonSmall {
   background-color: white;
   color: black;
-  border: 2px solid #555555;
-  padding: 8px 32px;
+  border: 1px solid #555555;
+  padding: 4px 10px;
+  font-size: 12px;
 }
 
 .buttonSmall:hover {
   background-color: #555555;
   color: white;
-  padding: 8px 32px;
 }
+<<<<<<< Updated upstream
 
 .button5 {
     background-color: white;
@@ -70,3 +158,24 @@
     width: 99%;
     padding: 20px auto;
   }
+=======
+  /* Removed incomplete @font-face rules to resolve lint errors */
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.header, body {
+  min-width: 0;
+}
+
+#network {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  border-bottom: 1px solid #e0e0e2;
+}
+>>>>>>> Stashed changes

@@ -10,26 +10,69 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+<<<<<<< Updated upstream
         padding: 10px;
+=======
+        padding: 4px 8px;
+        width: 340px;
+        min-width: 0;
+>>>>>>> Stashed changes
       }
       .button-container {
         display: flex;
-        gap: 10px;
+        gap: 4px;
       }
+<<<<<<< Updated upstream
+=======
+      #network {
+        width: 100%;
+        height: 220px;
+        border-bottom: 1px solid #e0e0e2;
+        flex: 1;
+        min-height: 100px;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+        font-size: 13px;
+      }
+      #divider {
+        flex-shrink: 0;
+        margin: 2px 0;
+      }
+>>>>>>> Stashed changes
     </style>
   </head>
 
   <body>
+<<<<<<< Updated upstream
+=======
+  <!-- API key prompt removed -->
+
+>>>>>>> Stashed changes
     <div class="header">
-      <h2>Rabbithole</h2>
+      <div class="header-title">Rabbithole</div>
+      <div class="header-spacer"></div>
       <div class="button-container">
         <button id="back" class="button buttonSmall">Back</button>
         <button id="reset" class="button buttonSmall">Reset</button>
+<<<<<<< Updated upstream
       </div>
     </div>
 
     <div id="divider"></div>
     <canvas id="network" width="450" height="350"></canvas>
+=======
+        <input id="node-search" class="button buttonSmall" style="width: 140px;" placeholder="Search node..." />
+  <button id="search-node-btn" class="button buttonSmall">Search</button>
+      </div>
+    </div>
+  <div id="divider"></div>
+
+    <div id="network"></div>>
+>>>>>>> Stashed changes
 
     <!-- JavaScript scripts at the end of the body -->
     <script src="springy.js"></script>
