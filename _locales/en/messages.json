@@ -1,0 +1,10 @@
+{
+  "extensionName": {
+    "message": "Rabbithole Research",
+    "description": "Extension name"
+  },
+  "extensionDescription": {
+    "message": "All the research, without the mess.",
+    "description": "Extension description"
+  }
+}
